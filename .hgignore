@@ -5,3 +5,6 @@ hless.vtg
 hlessc
 hless
 obj/
+
+syntax: regexp
+logs/.*[^.].*
