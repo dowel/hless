@@ -1,0 +1,86 @@
+NAME
+hless
+
+SYNOPSIS
+hless infile
+
+OPTIONS
+h - Shows hless manual page.
+
+COMMANDS
+There is a number of commands that can be executed while in hless. Each command has a key binding  
+used to invoke the command. Below is a list of commands with description of what each one of them 
+does.
+
+ SEARCHING
+hless allows you to specify up to four different search patterns. There's a main search pattern 
+slot. Matches of main pattern marked with black on white color. In addition, there are three more 
+search patterns slots: red, green and blue search patterns. Matches of each of these patterns marked 
+with red, green or blue colors respectively.
+
+Each search pattern can be searched both upward and downward. Each pattern has a default search 
+direction. Once search direction is set, hless will continue searching in this direction. Search 
+direction can be flipped for main search pattern.
+
+/ - Search forward (pops edit box). Search direction set to downwards.
+.br
+? - Search backwards (pops edit box). Search direction set to upwards.
+.br
+n - Find next match of main pattern. Search direction is the same as original search.
+.br
+N - Find previous match of the main search pattern. Seach direction is opposite to original search.
+.br 
+F - Flip search direction of the main search pattern.
+.br
+~ - Reset main search pattern. This actively cancels the main search, hiding all matches from 
+both the screen and the memory.
+.br
+\\ - Opens Search Patterns Menu
+
+.B ADDITIONAL SEARCH PATTERNS
+.br
+Additional three search patterns are available from Search Patterns Menu. Below is a list of options 
+available in the menu with their respective meaning.
+
+- Push current search - Pushes main search pattern into next available search pattern slot (red, 
+green or blue).
+- Force push current search - Pushes main search pattern into selected search pattern slot. This 
+option presents a menu that allows you to choose what slot to use. Search pattern in the target slot 
+will be reset
+- Pop selected search - Moves selected search pattern to main search slot. If main search pattern 
+slow is occupied, this will overwrite the main search pattern.
+- Exchange current and selected search - Exchanges between one of the red, green or blue search 
+patterns with main search pattern.
+- Delete selected search - Resets selected slot, deleting its search pattern and matches.
+- Delete all searches - Deletes all search patterns. Will not touch main search pattern.
+
+ MATCH PATTERNS
+hless allows you to specify what lines of text to leave visible on screen. This is done using so 
+called match patterns.
+
+Once you configure a match pattern, hless will show only lines that match the pattern. In case there 
+are several match patterns, hless will show lines that match all configured match patterns.
+
+Following keyboard commands manipulate match patterns.
+
+s - Add new match pattern.
+.br
+S - Open Match pattern operations menu
+
+.B MATCH PATTERN OPERATIONS
+.br
+This menu allows you to manipulate match patterns. It includes following options:
+
+- Edit Selected Match Pattern - Allows to change one of the match patterns.
+- Delete Selected Match Pattern - Allows to delete one of the match patterns.
+- Delete All Match Pattern - Deletes all match patterns.
+
+AUTHOR
+Alexander Sandler <alex@alexonlinux.com>
+.br
+Submit bugs reports at http://git.alexonlinux.com/projects/hless
+.br
+For more information, see hless home page at 
+.br
+http://www.alexonlinux.com/hless
+

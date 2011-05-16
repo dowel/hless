@@ -1,0 +1,1508 @@
+#!/usr/bin/python -O
+#
+# Copyright 2010 Alexander Sandler
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+# 
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+
+import bisect
+import curses
+import curses.ascii
+import fcntl
+import logging
+import os
+import re
+import struct
+import sys
+import termios
+import datetime
+import threading
+import time
+import signal
+import optparse
+import types
+import select
+import gzip
+import traceback
+import copy
+import subprocess
+import cStringIO
+import __builtin__
+
+man = '''
+.\" MAN STARTS HERE
+.\" MAN ENDS HERE
+'''
+
+hless_version = '0.3.2'
+hless = None
+
+def key_name(c):
+	if c >= 0:
+		return curses.keyname(c)
+	else:
+		return 'invalid key'
+
+def parse_command_line():
+	global hless_version
+
+	parser = optparse.OptionParser(add_help_option = False)
+
+	d_help = 'enables debug logs; argument is comma separated combination of any of the: '
+	d_help += ', '.join(log.groups) + ', all'
+
+	parser.add_option('-D', '--debug', help = d_help, action = 'store', \
+		dest = 'debug', default = '')
+	parser.add_option('-v', '--version', help='prints hless\'s version number', action = 'store_true', \
+		dest = 'version', default = False)
+	parser.add_option('-h', help = 'shows hless man page', action = 'store_true', dest = 'show_man', default = False)
+
+	(opts, args) = parser.parse_args()
+
+	if opts.version:
+		print 'hless - Text file viewer'
+		print 'Version number: %s' % hless_version
+		print 'Copyright 2010 Alexander Sandler'
+		print 'This program is free software under terms and conditions of '
+		print 'version 3 of GNU General Public License'
+		sys.exit(0)
+
+	if opts.show_man:
+		print 'Writing man page...'
+		fd = open('/tmp/hless.man', 'w+')
+		fd.write(man)
+		fd.close()
+		subprocess.call(['man', '/tmp/hless.man'])
+		sys.exit(0)
+
+	if opts.debug != '':
+		log.enabled = True
+		log.debug_groups = opts.debug.split(',')
+		log.setup_logs()
+
+	if len(args) != 0:
+		config.filename = args[0].strip()
+	else:
+		parser.print_help()
+
+class Config:
+	def __init__(self):
+		self.chunk_size = 16 * 1024 # 1048576
+		self.filename = ''
+
+class Singleton(type):
+	def __init__(cls, name, bases, dict):
+		super(Singleton, cls).__init__(name, bases, dict)
+		cls.instance = None
+
+	def __call__(cls, *args, **kw):
+		if cls.instance is None:
+			cls.instance = super(Singleton, cls).__call__(*args, **kw)
+		return cls.instance
+
+class Logger:
+	def __init__(self, name):
+		self.logger = logging.getLogger(name)
+
+	def set_level(self, level):
+		self.logger.setLevel(level)
+
+	def info(self, *args):
+		if log.enabled:
+			self.logger.info(*args)
+
+	def debug(self, *args):
+		if log.enabled:
+			self.logger.debug(*args)
+
+	def warn(self, *args):
+		if log.enabled:
+			self.logger.warning(*args)
+
+	def error(self, *args):
+		if log.enabled:
+			self.logger.error(*args)
+
+class Log:
+	def __init__(self):
+		self.enabled = False
+
+		self.debug_groups = []
+		self.loggers = {}
+		self.groups = ['main', 'input', 'file', 'buffer', 'screen', 'brush', 'keys', 'editbox']
+
+		setattr(self, 'main', Logger('main'))
+		setattr(self, 'input', Logger('input'))
+		setattr(self, 'file', Logger('file'))
+		setattr(self, 'buffer', Logger('buffer'))
+		setattr(self, 'screen', Logger('screen'))
+		setattr(self, 'brush', Logger('brush'))
+		setattr(self, 'keys', Logger('keys'))
+		setattr(self, 'editbox', Logger('editbox'))
+
+	def setup_logs(self):
+		self.enabled = True
+
+		logging.basicConfig(
+			format = '%(asctime)s %(name)8s %(levelname)s: %(message)s', \
+			filename = 'log.txt', \
+			filemode = 'w')
+
+		for group in self.groups:
+			logger = getattr(self, group)
+			logger.set_level(logging.INFO)
+
+		if 'all' in self.debug_groups:
+			for group in self.groups:
+				logger = getattr(self, group)
+				logger.set_level(logging.DEBUG)
+		else:
+			for group in self.debug_groups:
+				logger = getattr(self, group)
+				logger.set_level(logging.DEBUG)
+
+		log.main.info('Following debug groups enabled: %s. The rest are info level.', self.debug_groups)
+
+class Color:
+	def __init__(self, color, name):
+		self.name = name
+		self.color = color
+
+class Colors(object):
+	__metaclass__ = Singleton
+
+	def __init__(self):
+		curses.use_default_colors()
+		curses.curs_set(0)
+
+		curses.init_pair(1, curses.COLOR_WHITE, curses.COLOR_BLUE)
+		curses.init_pair(2, curses.COLOR_BLACK, curses.COLOR_RED)
+		curses.init_pair(3, curses.COLOR_BLACK, curses.COLOR_YELLOW)
+		curses.init_pair(4, curses.COLOR_BLACK, curses.COLOR_CYAN)
+		curses.init_pair(5, curses.COLOR_BLACK, curses.COLOR_MAGENTA)
+		curses.init_pair(6, curses.COLOR_BLACK, curses.COLOR_GREEN)
+		curses.init_pair(7, curses.COLOR_BLACK, curses.COLOR_WHITE)
+		curses.init_pair(8, curses.COLOR_WHITE, curses.COLOR_RED)
+		curses.init_pair(9, curses.COLOR_YELLOW, curses.COLOR_BLUE)
+		curses.init_pair(10, curses.COLOR_WHITE, curses.COLOR_GREEN)
+
+		self.white_on_black = curses.color_pair(0)
+		self.white_on_blue = curses.color_pair(1)
+		self.black_on_red = curses.color_pair(2)
+		self.black_on_yellow = curses.color_pair(3)
+		self.black_on_cyan = curses.color_pair(4)
+		self.black_on_magenta = curses.color_pair(5)
+		self.black_on_green = curses.color_pair(6)
+		self.black_on_white = curses.color_pair(7)
+		self.white_on_red = curses.color_pair(8)
+		self.yellow_on_blue = curses.color_pair(9)
+		self.white_on_green = curses.color_pair(10)
+
+		self.status = Color(self.black_on_white, '#status color#')
+		self.search = Color(self.white_on_black | curses.A_REVERSE, '#search color#')
+		self.cursor = Color(self.black_on_yellow, '#cursor color#')
+		self.mark = Color(self.white_on_blue, '#mark color#')
+		self.text = Color(self.white_on_black, '#text color#')
+		self.text_bold = Color(self.white_on_black | curses.A_BOLD, '#bold text color#')
+		self.message = Color(self.white_on_red, '#message color#')
+		self.border = Color(self.yellow_on_blue, '#border color#')
+		self.title = Color(self.yellow_on_blue | curses.A_BOLD, '#title color#')
+
+		self.unselected_option = Color(self.yellow_on_blue, '#unselected cursor color#')
+		self.selected_option = Color(self.black_on_yellow, '#selected cursor color#')
+
+		self.searches = []
+		self.searches.append(Color(self.white_on_black | curses.A_REVERSE, '#current search#'))
+		self.searches.append(Color(self.white_on_red | curses.A_REVERSE, '#red search slot#'))
+		self.searches.append(Color(self.white_on_green | curses.A_REVERSE, '#green search slot#'))
+		self.searches.append(Color(self.white_on_blue | curses.A_REVERSE, '#blue search slot#'))
+
+class File:
+	'''This class implements caching of file contents. It accepts'''
+	def __init__(self, file):
+		self.file = file
+
+	def read(self, offset, size):
+		return self.file.read(offset, size)
+
+	def tell(self):
+		return self.file.tell(offset)
+
+	def get_size(self):
+		return self.file.get_size()
+
+class PlainFile:
+	def __init__(self, filename):
+		self.filename = filename
+		self.file = open(filename)
+
+	def read(self, offset, size):
+		self.file.seek(offset, 0)
+		return self.file.read(size)
+
+	def tell(self):
+		return self.file.tell()
+
+	def get_size(self):
+		return os.path.getsize(self.filename)
+
+class Line:
+	'''This class contains meta information for line in a file. This includes offset of the line in the file, 
+	it's length and its index in the chunk.'''
+	def __init__(self, offset, length, chunk, line_index):
+		self.offset = offset
+		self.length = length
+		self.chunk = chunk
+		self.line_index = line_index
+
+	def name(self):
+		tmp = self.line_index + 1
+		res = str(tmp)
+		if self.chunk.name != '':
+			if tmp > 0:
+				return self.chunk.name + '+' + res
+			elif tmp == 0:
+				return self.chunk.name
+			else:
+				return self.chunk.name + res
+		else:
+			return res
+
+class Chunk:
+	'''This class is a container for Line objects.'''
+	def __init__(self, name, file, buffer, chunk_index):
+		self.name = name
+		self.file = file
+		self.buffer = buffer
+		self.chunk_index = chunk_index
+		self.base_line_index = 0
+		self.lines = []
+		self.start = 0
+		self.end = 0
+		self.length = 0
+		self.next = None # next chunk
+		self.prev = None # previous chunk
+
+	def grow_down(self):
+		'''This routine will increase the chunk towards the end of the file.'''
+		log.buffer.info('Growing chunk %s (%d) down', self.name, self.chunk_index)
+		log.buffer.info('Before growing chunk %s (%d) down, start %d, end %d, base index %d, lines %d',
+			self.name, self.chunk_index, self.start, self.end, self.base_line_index, len(self.lines))
+		start_from = 0
+		if len(self.lines) > 0:
+			start_from = self.end
+		start = start_from
+		new_lines = []
+		finished = False
+
+		# reading chunk...
+		how_much = config.chunk_size
+		if self.next is not None:
+			if start_from == self.next.start:
+				return
+			if start_from + how_much > self.next.start:
+				how_much = self.next.start - start_from
+		elif self.end == self.file.get_size():
+			return
+		buffer = self.file.read(start_from, how_much)
+		log.buffer.debug('read %d bytes from offset %d', len(buffer), start_from)
+		# Splitting them into lines...
+		lines = buffer.splitlines(True)
+		log.buffer.debug('Split them into %d lines', len(lines))
+		for line in lines:
+			if line.endswith('\n'):
+				new_lines.append(line)
+				start_from += len(line)
+		# Creating Line objects from lines...
+		for line in new_lines:
+			log.buffer.debug('Adding new line, %d bytes long at offset %d to chunk %d', len(line), self.end, self.chunk_index)
+			obj = Line(self.end, len(line), self, len(self.lines))
+			self.end += len(line)
+			self.length += len(line)
+			self.lines.append(obj)
+
+		log.buffer.info('After growing chunk %s (%d) down, start %d, end %d, base index %d, lines %d',
+			self.name, self.chunk_index, self.start, self.end, self.base_line_index, len(self.lines))
+		log.buffer.info('    First line offset %d, index %d, last line offset %d, index %d',
+			self.lines[0].offset, self.lines[0].line_index, self.lines[-1].offset, self.lines[-1].line_index)
+
+	def grow_up(self):
+		'''This routine will increase the chunk towards the end of the file.'''
+		log.buffer.info('Growing chunk %s (%d) up', self.name, self.chunk_index)
+		log.buffer.info('Before growing chunk %s (%d) up, start %d, end %d, base index %d, lines %d',
+			self.name, self.chunk_index, self.start, self.end, self.base_line_index, len(self.lines))
+
+		start_from = self.start - config.chunk_size
+		if start_from < 0:
+			start_from = 0
+
+		new_lines = []
+		finished = False
+
+		# reading chunk...
+		how_much = config.chunk_size
+		if self.prev is not None:
+			if self.start == self.prev.end:
+				return
+			if start_from < self.prev.end:
+				start_from = self.prev.end
+		buffer = self.file.read(start_from, how_much)
+		log.buffer.debug('read %d bytes from offset %d', len(buffer), start_from)
+		# Splitting them into lines...
+		lines = buffer.splitlines(True)
+		log.buffer.debug('Split them into %d lines', len(lines))
+		if self.prev is not None and start_from != self.prev.end:
+			log.buffer.debug('Skipping first %d bytes long line. Left with %d lines', len(lines[0]), len(lines) - 1)
+			start_from += len(lines[0])
+			lines = lines[1:] # Dropping first line because it probably starts from the middle.
+		for line in lines:
+			new_lines.append(line)
+
+		self.start = start_from
+		start = start_from
+		temp_lines = []
+		if len(self.lines) != 0:
+			line_index = self.lines[0].line_index - len(new_lines)
+			self.base_line_index += len(new_lines)
+		else:
+			line_index = -len(new_lines)
+			self.base_line_index = len(new_lines)
+
+		# Creating Line objects from lines...
+		for line in new_lines:
+			log.buffer.debug('Adding new line, %d bytes long at offset %d to chunk %d with index %d', len(line), start, 
+				self.chunk_index, line_index)
+			obj = Line(start, len(line), self, line_index)
+			line_index += 1
+			start += len(line)
+			self.length += len(line)
+			temp_lines.append(obj)
+		self.lines = temp_lines + self.lines
+
+		log.buffer.info('After growing chunk %s (%d) up, start %d, end %d, base index %d, lines %d',
+			self.name, self.chunk_index, self.start, self.end, self.base_line_index, len(self.lines))
+		log.buffer.info('    First line offset %d, index %d, last line offset %d, index %d',
+			self.lines[0].offset, self.lines[0].line_index, self.lines[-1].offset, self.lines[-1].line_index)
+
+	def get_line(self, index):
+		if index < len(self.lines):
+			return self.lines[index]
+		else:
+			return None
+
+class Buffer:
+	'''This class buffers information about file contents. It does not contains actual data, but rather various meta
+	information, such as line offset. Meta information about each line represented by Line class. Lines kept in Chunk
+	objects.'''
+	def __init__(self, file):
+		self.file = file
+		self.chunks = []
+
+	def get_first_line(self):
+		if len(self.chunks) == 0:
+			chunk = Chunk('', self.file, self, 0)
+			chunk.grow_down()
+			self.chunks.append(chunk)
+		return self.chunks[0].get_line(0)
+
+	def get_last_line(self):
+		# First checking if last chunk contains it...
+		log.buffer.debug('Asked to return last line in the file')
+		file_size = self.file.get_size()
+		last_chunk = self.chunks[-1]
+		last_line = last_chunk.lines[-1]
+		log.buffer.debug('Last chunk: index %d, lines %d, start %d, end %d', 
+			last_chunk.chunk_index, len(last_chunk.lines), last_chunk.start, last_chunk.end)
+		log.buffer.debug('Last line in chunk %s (%d) offset is %d, length %d, file size is %d (%d)', 
+			last_chunk.name, last_chunk.chunk_index, last_line.offset, last_line.length, file_size, last_line.offset + last_line.length)
+		if last_line.offset + last_line.length == file_size:
+			return last_line
+
+		# Now checking if we can grow the last chunk...
+		if file_size - last_line.offset + last_line.length < config.chunk_size:
+			log.buffer.debug('Last chunk seems to be not far away from the end of the file. Growing down...')
+			last_chunk.grow_down()
+			return self.get_last_line()
+
+		# We seem to have no choice but to add new chunk...
+		chunk = Chunk('EOF', self.file, self, len(self.chunks))
+		chunk.prev = self.chunks[-1]
+		self.chunks[-1].next = chunk # hopefully this is not the first chunk that we create...
+		self.chunks.append(chunk)
+		chunk.start = file_size
+		chunk.end = file_size
+		chunk.grow_up()
+
+		return self.get_last_line()
+
+	def get_next_line(self, current):
+		log.buffer.debug('Asked to get line after line %d', current.offset)
+		chunk = current.chunk
+		new = chunk.get_line(chunk.base_line_index + current.line_index + 1)
+		if new is None:
+			if chunk.next is not None and chunk.end == chunk.next.start:
+				log.buffer.debug('Reached end of chunk. Skipping to next')
+				tmp = chunk.next.get_line(0)
+				if tmp is not None:
+					log.buffer.debug('Returning %d', tmp.offset)
+				else:
+					log.buffer.debug('Returning None')
+				return tmp
+			else:
+				log.buffer.debug('Line is not in the current chunk. Growing the chunk down')
+				chunk.grow_down()
+				tmp = chunk.get_line(chunk.base_line_index + current.line_index + 1)
+				if tmp is not None:
+					log.buffer.debug('Returning %d', tmp.offset)
+				else:
+					log.buffer.debug('Returning None')
+				return tmp
+		else:
+			log.buffer.debug('Returning %d', new.offset)
+			return new
+
+	def get_prev_line(self, current):
+		log.buffer.debug('Asked to get line before %d', current.offset)
+		if current.offset == 0:
+			return None
+		chunk = current.chunk
+		if chunk.base_line_index + current.line_index - 1 < 0:
+			if chunk.prev is not None and chunk.start == chunk.prev.end:
+				log.buffer.debug('Reached end of chunk. Returning to previous chunk')
+				tmp = chunk.prev.get_line(-1)
+				if tmp is not None:
+					log.buffer.debug('Returning %d', tmp.offset)
+				else:
+					log.buffer.debug('Returning None')
+				return tmp
+			else:
+				log.buffer.debug('Line is not in the current chunk. Growing the chunk up')
+				chunk.grow_up()
+				tmp = chunk.get_line(chunk.base_line_index + current.line_index - 1)
+				if tmp is not None:
+					log.buffer.debug('Returning %d', tmp.offset)
+				else:
+					log.buffer.debug('Returning None')
+				return tmp
+		else:
+			new = chunk.get_line(chunk.base_line_index + current.line_index - 1)
+			log.buffer.debug('Returning %d', new.offset)
+			return new
+
+	def get_string(self, string):
+		tmp = self.file.read(string.offset, string.length)
+		tmp = tmp.rstrip()
+		log.buffer.debug('Asked to read string at offset %d. String is %d bytes long', string.offset, len(tmp))
+		return tmp
+
+	def mediate_line(self, begin, end, offset):
+		'''Given line to begin, end line and offset in the file, this routine should find closest to the offset
+		line between begin and end. This useful when changing position of the current and have to calculate position
+		of the cursor.'''
+		old_temp = None
+		temp = begin
+		while temp != end and temp.offset < offset:
+			old_temp = temp
+			temp = self.get_next_line(temp)
+
+		if old_temp == None:
+			return begin
+		else:
+			dist = temp.offset - offset
+			if dist > (old_temp.length / 2):
+				return temp
+			else:
+				return old_temp
+
+	def get_size(self):
+		return self.file.get_size()
+
+	def fast_move(self, where, line):
+		'''This routine moves forward or backward specified number of lines starting from specified line'''
+		pass
+
+class GeometryAware:
+	'''This class is a base class for all classes that should be terminal size aware.'''
+	def __init__(self, scr):
+		self.scr = scr
+		self.max_y, self.max_x = self.scr.getmaxyx()
+
+	def recalc_geometry(self):
+		'''This method should be called every time the object redraws itself on the screen.'''
+		height, width = self.scr.getmaxyx()
+		if height == self.max_y and width == self.max_x:
+			return False
+
+		self.max_y = height
+		self.max_x = width
+
+		self._note_geometry_change()
+
+		return True
+
+	def _note_geometry_change(self):
+		pass
+
+class CommandProcessor:
+	def __init__(self):
+		pass
+
+	def processor(self):
+		pass
+
+class InputProcessor:
+	'''This class maintains a tree of processor objects. Each object expected to inherit from CommandProcessor class. 
+	InputProcessor maintains a state machine for complex input sequences. Given input that consists of several keys, 
+	it is expected to start from root node going down to the right tree node, eventually finding node that matches
+	the key and appropriate processor object. Once right processor has been found, InputProcessor will call run
+	method of the processor.'''
+
+	class InputProcessorNode:
+		def __init__(self, key):
+			self.children = {}
+			self.key = key
+			self.processor = None
+
+		def set_processor(self, processor):
+			self.processor = processor
+
+		def add_child(self, child):
+			self.children[child.key] = child
+
+		def get_child(self, key):
+			if self.children.has_key(key):
+				return self.children[key]
+			else:
+				return None
+
+	def __init__(self):
+		self.root = InputProcessor.InputProcessorNode(0)
+		self.current = self.root
+		log.input.debug('Root node set to %#x', id(self.root))
+
+	def add_processor(self, sequence, processor, current=None):
+		if current is None:
+			log.input.info('Asked to add input processor for keys %s of type %s', sequence, processor.__class__.__name__)
+		else:
+			log.input.debug('Recurred with current %#x', id(current))
+		if len(sequence) == 0:
+			return
+		if current is None:
+			current = self.root
+		node = current.get_child(sequence[0])
+		if node is None:
+			node = InputProcessor.InputProcessorNode(sequence[0])
+			log.input.debug('Adding processor as child of node %#x', id(node))
+			current.add_child(node)
+		if len(sequence) > 1:
+			self.add_processor(sequence[1:], processor, node)
+		else:
+			log.input.debug('Adding new processor to node %#x', id(node))
+			node.processor = processor
+
+	def process_command(self, key):
+		log.input.info('Asked to run key: %s', key_name(key))
+		node = self.current.get_child(key)
+		if node is None:
+			self.current = self.root
+			return
+		if node.processor is not None:
+			log.input.debug('Calling processor for %s of type %s in node %#x', node.key, node.processor.__class__.__name__, id(node))
+			node.processor.run()
+			self.current = self.root
+		else:
+			self.current = node
+
+class Brush(GeometryAware):
+	def __init__(self, scr):
+		GeometryAware.__init__(self, scr)
+		self.scr = scr
+		self.colors = Colors()
+
+	def __draw_something(self, y, x, text, color):
+		log.brush.debug('Asked to draw text %d bytes long at %d/%d with color %s', len(text), y, x, color.name)
+		log.brush.debug('    The text is: %s', text.rstrip())
+		try:
+			self.scr.addstr(y, x, text, color.color)
+		except Exception, ex:
+			exc_type, exc_value, exc_traceback = sys.exc_info()
+			log.brush.warn('Received exception when printed a line: "%s"', text.rstrip())
+			log.brush.warn('At %s', traceback.format_exception(exc_type, exc_value, exc_traceback))
+
+	def draw_line(self, y, text, color):
+		if len(text) == 0:
+			return
+		text = text.ljust(self.max_x)
+		self.__draw_something(y, 0, text, color)
+
+	def draw_text(self, y, x, text, color):
+		if len(text) == 0:
+			return
+		self.__draw_something(y, x, text, color)
+
+class StatusBar(GeometryAware):
+	'''This class implements status bar'''
+	def __init__(self, hless, scr, buffer):
+		GeometryAware.__init__(self, scr)
+		self.hless = hless
+		self.scr = scr
+		self.buffer = buffer
+		self.brush = Brush(self.scr)
+		self.colors = Colors()
+
+	def __draw_first_line(self):
+		written = 0
+
+		# Current position in the file...
+		text = '  '
+		text += self.hless.cursor.name()
+		text += '  |  '
+		self.brush.draw_text(self.max_y - 2, 0, text, self.colors.status)
+		written += len(text)
+
+		# Current offset in the file...
+		text = '%d/%d  |  ' % (self.hless.cursor.offset, self.buffer.get_size())
+		self.brush.draw_text(self.max_y - 2, written, text, self.colors.status)
+		written += len(text)
+
+		text = ' '.ljust(self.max_x - written)
+		self.brush.draw_text(self.max_y - 2, written, text, self.colors.status)
+
+	def __draw_second_line(self):
+		written = 0
+		text = ' '.ljust(self.max_x - written)
+		self.brush.draw_text(self.max_y - 1, written, text, self.colors.status)
+
+	def draw(self):
+		self.recalc_geometry()
+
+		self.__draw_first_line()
+		self.__draw_second_line()
+
+	def _note_geometry_change(self):
+		pass
+
+class EditBox(GeometryAware):
+	class PrevWordProcessor(CommandProcessor):
+		def __init__(self, editbox):
+			CommandProcessor.__init__(self)
+			self.editbox = editbox
+
+		def run(self):
+			lst = []
+			for m in re.finditer(self.editbox.word_separator, self.editbox.history[self.editbox.buffer_ptr][:self.editbox.cursor]):
+				lst.append(m.start())
+			if len(lst) > 0:
+				self.editbox.cursor = lst[-1]
+			else:
+				self.editbox.cursor = 0
+
+	class NextWordProcessor(CommandProcessor):
+		def __init__(self, editbox):
+			CommandProcessor.__init__(self)
+			self.editbox = editbox
+
+		def run(self):
+			lst = []
+			for m in re.finditer(self.editbox.word_separator, self.editbox.history[self.editbox.buffer_ptr][self.editbox.cursor:]):
+				lst.append(m.end() + self.editbox.cursor)
+			if len(lst) > 0:
+				self.editbox.cursor = lst[0]
+			else:
+				self.editbox.cursor = len(self.editbox.history[self.editbox.buffer_ptr])
+
+	class DeleteWordProcessor(CommandProcessor):
+		def __init__(self, editbox):
+			CommandProcessor.__init__(self)
+			self.editbox = editbox
+
+		def run(self):
+			lst = []
+			for m in re.finditer(self.editbox.word_separator, self.editbox.history[self.editbox.buffer_ptr][:self.editbox.cursor]):
+				lst.append(m.start())
+			if len(lst) > 0:
+				self.editbox.history[self.editbox.buffer_ptr] = self.editbox.history[self.editbox.buffer_ptr][:lst[-1]] + \
+					self.editbox.history[self.editbox.buffer_ptr][self.editbox.cursor:]
+				self.editbox.cursor = lst[-1]
+			else:
+				self.editbox.history[self.editbox.buffer_ptr] = self.editbox.history[self.editbox.buffer_ptr][self.editbox.cursor:]
+				self.editbox.cursor = 0
+
+	class DeleteProcessor(CommandProcessor):
+		def __init__(self, editbox):
+			CommandProcessor.__init__(self)
+			self.editbox = editbox
+
+		def run(self):
+			if self.editbox.cursor < len(self.editbox.history[self.editbox.buffer_ptr]):
+				self.editbox.history[self.editbox.buffer_ptr] = self.editbox.history[self.editbox.buffer_ptr][:self.editbox.cursor] + \
+					self.editbox.history[self.editbox.buffer_ptr][self.editbox.cursor + 1:]
+
+	class BackspaceProcessor(CommandProcessor):
+		def __init__(self, editbox):
+			CommandProcessor.__init__(self)
+			self.editbox = editbox
+
+		def run(self):
+			if len(self.editbox.history[self.editbox.buffer_ptr]) > 0:
+				self.editbox.history[self.editbox.buffer_ptr] = self.editbox.history[self.editbox.buffer_ptr][:self.editbox.cursor - 1] + \
+					self.editbox.history[self.editbox.buffer_ptr][self.editbox.cursor:]
+				self.editbox.cursor -= 1
+
+	class LeftProcessor(CommandProcessor):
+		def __init__(self, editbox):
+			CommandProcessor.__init__(self)
+			self.editbox = editbox
+
+		def run(self):
+			if self.editbox.cursor > 0:
+				self.editbox.cursor -= 1
+
+	class RightProcessor(CommandProcessor):
+		def __init__(self, editbox):
+			CommandProcessor.__init__(self)
+			self.editbox = editbox
+
+		def run(self):
+			if self.editbox.cursor < len(self.editbox.history[self.editbox.buffer_ptr]):
+				self.editbox.cursor += 1
+
+	class UpProcessor(CommandProcessor):
+		def __init__(self, editbox):
+			CommandProcessor.__init__(self)
+			self.editbox = editbox
+
+		def run(self):
+			if len(self.editbox.history) == 0:
+				return
+
+			self.editbox.buffer_ptr -= 1
+			if self.editbox.buffer_ptr < 0:
+				self.editbox.buffer_ptr = 0
+				return
+			self.editbox.cursor = len(self.editbox.history[self.editbox.buffer_ptr])
+			log.editbox.info('Setting history ptr to %d', self.editbox.buffer_ptr)
+
+	class DownProcessor(CommandProcessor):
+		def __init__(self, editbox):
+			CommandProcessor.__init__(self)
+			self.editbox = editbox
+
+		def run(self):
+			if len(self.editbox.history) == 0:
+				return
+
+			self.editbox.buffer_ptr += 1
+			if self.editbox.buffer_ptr >= len(self.editbox.history):
+				self.editbox.buffer_ptr -= 1
+				return
+			self.editbox.cursor = len(self.editbox.history[self.editbox.buffer_ptr])
+			log.editbox.info('Setting history ptr to %d', self.editbox.buffer_ptr)
+
+	class HomeProcessor(CommandProcessor):
+		def __init__(self, editbox):
+			CommandProcessor.__init__(self)
+			self.editbox = editbox
+
+		def run(self):
+			self.editbox.cursor = 0
+
+	class TabProcessor(CommandProcessor):
+		def __init__(self, editbox):
+			CommandProcessor.__init__(self)
+			self.editbox = editbox
+
+		def run(self):
+			if len(self.editbox.modes) > 0:
+				self.editbox.current_mode += 1
+				if self.editbox.current_mode >= len(self.editbox.modes):
+					self.editbox.current_mode = 0
+				self.editbox._set_prompt()
+
+	class EndProcessor(CommandProcessor):
+		def __init__(self, editbox):
+			CommandProcessor.__init__(self)
+			self.editbox = editbox
+
+		def run(self):
+			self.editbox.cursor = len(self.editbox.history[self.editbox.buffer_ptr])
+
+	class EnterProcessor(CommandProcessor):
+		def __init__(self, editbox):
+			CommandProcessor.__init__(self)
+			self.editbox = editbox
+
+		def run(self):
+			self.editbox.proceed = False
+
+	class SpecialEnterProcessor(CommandProcessor):
+		def __init__(self, editbox):
+			CommandProcessor.__init__(self)
+			self.editbox = editbox
+
+		def run(self):
+			self.editbox.proceed = False
+
+	class EscapeProcessor(CommandProcessor):
+		def __init__(self, editbox):
+			CommandProcessor.__init__(self)
+			self.editbox = editbox
+
+		def run(self):
+			self.editbox.history[self.editbox.buffer_ptr] = ''
+			self.editbox.proceed = False
+
+	def __init__(self, scr, prompt, history, value='', modes=[]):
+		GeometryAware.__init__(self, scr)
+		self.scr = scr
+		self.colors = Colors()
+		self.brush = Brush(self.scr)
+		self.proceed = True
+
+		self.special_enter = False
+
+		self.pos = 0
+
+		self.history = copy.copy(history)
+		self.buffer_ptr = len(self.history)
+		self.history.append(value)
+		self.cursor = len(value)
+
+		self.max_x = 0
+		self.max_y = 0
+
+		self.modes = modes
+		self.current_mode = 0
+		self.base_prompt = prompt
+		self._set_prompt()
+
+		self.recalc_geometry()
+
+		self.word_separator = '[ \t\*\?_\.\[\]\~\=\&\%\^\(\)\{\}\<\>]+'
+
+		self.input = InputProcessor()
+		self.input.add_processor([curses.KEY_UP], EditBox.UpProcessor(self))
+		self.input.add_processor([curses.KEY_DOWN], EditBox.DownProcessor(self))
+		self.input.add_processor([curses.KEY_HOME], EditBox.HomeProcessor(self))
+		self.input.add_processor([curses.KEY_END], EditBox.EndProcessor(self))
+		self.input.add_processor([curses.KEY_LEFT], EditBox.LeftProcessor(self))
+		self.input.add_processor([curses.KEY_RIGHT], EditBox.RightProcessor(self))
+		self.input.add_processor([curses.KEY_DC], EditBox.DeleteProcessor(self))
+		self.input.add_processor([curses.KEY_BACKSPACE], EditBox.BackspaceProcessor(self))
+		self.input.add_processor([curses.ascii.BS], EditBox.BackspaceProcessor(self))
+		self.input.add_processor([curses.ascii.ESC, curses.KEY_BACKSPACE], EditBox.DeleteWordProcessor(self))
+		self.input.add_processor([curses.ascii.ESC, curses.ascii.BS], EditBox.DeleteWordProcessor(self))
+		self.input.add_processor([curses.ascii.ESC, ord('b')], EditBox.PrevWordProcessor(self))
+		self.input.add_processor([curses.ascii.ESC, ord('f')], EditBox.NextWordProcessor(self))
+		self.input.add_processor([ord('\t')], EditBox.TabProcessor(self))
+		self.input.add_processor([curses.ascii.LF], EditBox.EnterProcessor(self))
+		self.input.add_processor([curses.KEY_ENTER], EditBox.EnterProcessor(self))
+		self.input.add_processor([curses.ascii.ESC, curses.ascii.ESC], EditBox.EscapeProcessor(self))
+
+		log.editbox.info('Asked to draw editbox at %d-%d, %d characters wide, %d strings in history, with prompt %s', \
+			self.y, self.x, self.width, len(self.history), self.prompt)
+
+	def _set_prompt(self):
+		if len(self.modes) == 0:
+			self.prompt = self.base_prompt + ':'
+		else:
+			self.prompt = self.base_prompt + (' (%s):' % self.modes[self.current_mode])
+	
+	def _note_geometry_change(self):
+		self.width = self.max_x
+		self.height = 2
+		self.x = 0
+		self.y = self.max_y - 2
+		self.text_width = self.width - len(self.prompt)
+
+	def __calculate_window(self):
+		win = self.history[self.buffer_ptr][self.pos:]
+		win = win[:self.text_width]
+		if len(win) < self.text_width:
+			spacer = ' ' * (self.text_width - len(win) - 1)
+			win += spacer
+		return win
+
+	def __place_cursor(self):
+		self.scr.move(self.y + 1, self.cursor + self.x + len(self.prompt) - self.pos)
+
+	def __handle_user_input(self, c):
+		log.editbox.debug('EditBox received key press %s at %d/%d', key_name(c), self.pos, self.cursor)
+
+		if curses.ascii.isgraph(c) or c == ord(' '):
+			self.history[self.buffer_ptr] = self.history[self.buffer_ptr][:self.cursor] + chr(c) + \
+				self.history[self.buffer_ptr][self.cursor:]
+			self.cursor += 1
+			if self.cursor > self.pos + self.text_width:
+				self.pos += 1
+		else:
+			self.input.process_command(c)
+
+		if self.cursor < self.pos:
+			self.pos = self.cursor
+
+		log.editbox.debug('After processing %s cursor and pos are at %d and %d', curses.keyname(c), self.pos, self.cursor)
+
+	def run(self):
+		'''This method shows the editbox. It returns a tuple consisting of editbox text,
+		whether or not special enter was hit (alt + enter) and current mode (if present)'''
+		log.editbox.info('Running the editbox')
+
+		curses.curs_set(1)
+		curses.setsyx(self.y + 2, self.x)
+
+		while self.proceed:
+			self.recalc_geometry()
+
+			# This is the border...
+			self.scr.hline(self.y, self.x, curses.ACS_HLINE | self.colors.border.color, self.width)
+			# This is the prompt...
+			self.scr.addstr(self.y + 1, self.x, self.prompt, self.colors.border.color)
+
+			win = self.__calculate_window()
+			self.brush.draw_text(self.y + 1, self.x + len(self.prompt), win, self.colors.text)
+			self.__place_cursor()
+
+			self.scr.noutrefresh()
+			curses.doupdate()
+
+			# Now waiting for some input...
+			try:
+				c = self.scr.getch()
+				self.__handle_user_input(c)
+			except KeyboardInterrupt:
+				self.history[self.buffer_ptr] = ''
+				self.proceed = False
+
+		curses.curs_set(0)
+
+		if len(self.modes) == 0:
+			return self.history[self.buffer_ptr], self.special_enter, ''
+		else:
+			return self.history[self.buffer_ptr], self.special_enter, self.modes[self.current_mode]
+
+class MessageBox(GeometryAware):
+	def __init__(self, hless, text):
+		self.hless = hless
+		self.scr = self.hless.scr
+		self.max_x = 0
+		self.max_y = 0
+		self.text = text
+
+		self.recalc_geometry()
+		self.colors = Colors()
+
+		self.window = curses.newwin(self.height, self.width, self.y, self.x)
+		self.brush = Brush(self.window)
+
+		self.scr.timeout(100)
+		now = datetime.datetime.now()
+
+		c = curses.KEY_RESIZE
+		while c == curses.KEY_RESIZE or c == -1:
+			self.hless.screen.redraw_screen()
+			self.Draw()
+			c = self.scr.getch()
+			if c < 0 and datetime.datetime.now() - now > datetime.timedelta(seconds=2):
+				log.main.info('Timed out')
+				break
+			log.main.info('Received ' + key_name(c))
+
+		self.scr.timeout(-1)
+
+	def Draw(self):
+		# Drawing the border...
+		self.window.border(curses.ACS_VLINE + self.colors.border.color, curses.ACS_VLINE + self.colors.border.color, \
+			curses.ACS_HLINE + self.colors.border.color, curses.ACS_HLINE + self.colors.border.color, \
+			curses.ACS_ULCORNER + self.colors.border.color, curses.ACS_URCORNER + self.colors.border.color, \
+			curses.ACS_LLCORNER + self.colors.border.color, curses.ACS_LRCORNER + self.colors.border.color)
+
+		# This is the prompt...
+		text = self.text.center(self.width - 2)
+		self.brush.draw_text(1, 1, text, self.colors.message)
+
+		self.scr.noutrefresh()
+		self.window.noutrefresh()
+		curses.doupdate()
+		
+	def _note_geometry_change(self):
+		self.width = self.max_x - 6
+		self.height = 3
+		self.x = 3
+		self.y = int((self.max_y / 2) - 2)
+		self.text_width = self.width - len(self.text)
+
+class Screen(GeometryAware):
+	'''This implements routines that draw file contents on the screen.'''
+	def __init__(self, hless, scr, buffer):
+		GeometryAware.__init__(self, scr)
+		self.hless = hless
+		self.scr = scr
+		self.buffer = buffer
+
+		self.brush = Brush(scr)
+		self.colors = Colors()
+
+		self.cursor = None
+		self.current = None
+		self.line_in_current = 0
+
+		self.bottom = None
+		self.line_in_bottom = 0
+		self.lines_on_screen = 0
+
+		self.status_bar_height = 2
+		self.text_height = self.max_y - self.status_bar_height
+
+		self.status_bar = StatusBar(self.hless, self.scr, self.buffer)
+
+	def set_position(self, cursor, current, line_in_current):
+		self.cursor = cursor
+		self.current = current
+		self.line_in_current = line_in_current
+
+	def split_line(self, line):
+		res = []
+		while len(line) > 0:
+			res.append(line[:self.max_x])
+			line = line[self.max_x:]
+		return res
+
+	def get_lines(self, line):
+		ll = self.buffer.get_string(line)
+		if ll:
+			return self.split_line(ll)
+		else:
+			return None
+
+	def stage_redraw_from_middle(self):
+		'''This routine doesn't redraw anything. It calculates current assuming cursor should be
+		in the middle of the screen.'''
+
+		log.screen.info('Staging screen redrawing from middle with cursor at offset %d ' % (self.cursor.offset))
+
+		i = self.text_height / 2
+		j = i
+		top_cursor = self.cursor
+		bottom_cursor = self.cursor
+		while i > 0 and j < self.text_height:
+			lines = self.get_lines(top_cursor)
+			i -= len(lines)
+
+			prev_top_cursor = top_cursor
+			top_cursor = self.buffer.get_prev_line(top_cursor)
+			if top_cursor == None:
+				top_cursor = prev_top_cursor
+				break
+
+			if bottom_cursor != None:
+				lines = self.get_lines(bottom_cursor)
+				j += len(lines)
+				bottom_cursor = self.buffer.get_next_line(bottom_cursor)
+
+		self.current = top_cursor
+		self.line_in_current = -i
+
+		log.screen.info('After middle redrawing, current at %d, line in current is %d', 
+			self.current.offset, self.line_in_current)
+
+	def stage_reversed_redraw_screen(self):
+		'''This routine doesn't draw anything. Instead it just calculates current using bottom.'''
+		self.recalc_geometry()
+
+		log.screen.info('Staging reversed screen redrawing...')
+
+		i = self.text_height
+		current = self.bottom
+		lines_in = self.line_in_bottom + 1
+		prev_lines_in = 0
+		while i > 0:
+			i -= lines_in
+			self.current = current
+			current = self.buffer.get_prev_line(current)
+			if current is None:
+				break
+			line = self.buffer.get_string(current)
+			lines = self.split_line(line)
+			prev_lines_in = lines_in
+			lines_in = len(lines)
+		self.line_in_current = prev_lines_in + i - 1
+
+		log.screen.info('After staged redrawing, current at %d, line in current is %d', 
+			self.current.offset, self.line_in_current)
+
+	def stage_redraw_screen(self):
+		'''This routine doesn't draw anything. Instead it just calculates bottom line.'''
+		self.recalc_geometry()
+
+		log.screen.info('Staging screen redrawing...')
+
+		i = 0
+		j = self.line_in_current
+		current = self.current
+
+		line = self.buffer.get_string(current)
+		lines = self.split_line(line)
+		while i < self.text_height:
+			self.bottom = current
+			self.line_in_bottom = j
+
+			i += 1
+			j += 1
+			if j >= len(lines):
+				old_current = current
+				current = self.buffer.get_next_line(current)
+				if current is None:
+					break
+				line = self.buffer.get_string(current)
+				lines = self.split_line(line)
+				j = 0
+
+		self.lines_on_screen = i
+
+		log.screen.info('After staged redrawing, bottom at %d, line in bottom is %d', 
+			self.bottom.offset, self.line_in_bottom)
+
+	def redraw_screen(self):
+		'''This is the main drawing routine. It is the one displaying file contents on the screen.'''
+		self.recalc_geometry()
+
+		log.screen.info('Redrawing screen...')
+
+		i = 0
+		j = self.line_in_current
+		current = self.current
+
+		line = self.buffer.get_string(current)
+		lines = self.split_line(line)
+		while i < self.text_height:
+			if self.cursor == current:
+				self.brush.draw_line(i, lines[j], self.colors.cursor)
+			else:
+				self.brush.draw_line(i, lines[j], self.colors.text)
+
+			self.bottom = current
+			self.line_in_bottom = j
+
+			i += 1
+			j += 1
+			if j >= len(lines):
+				old_current = current
+				current = self.buffer.get_next_line(current)
+				if current is None:
+					break
+				line = self.buffer.get_string(current)
+				lines = self.split_line(line)
+				j = 0
+
+		self.lines_on_screen = i
+
+		# There is a chance we had to drop the middle without drawing entire screen (in case reached EOF).
+		# In this case we want to draw rest of the screen with blanks...
+		while i < self.text_height:
+			self.brush.draw_line(i, ' ', self.colors.text)
+			i += 1
+
+		self.status_bar.draw()
+
+		log.screen.info('After redrawing, bottom at %d, line in bottom is %d', self.bottom.offset, self.line_in_bottom)
+		
+	def _note_geometry_change(self):
+		self.text_height = self.max_y - self.status_bar_height
+
+class Hless:
+	'''This is the main class. It glues together all various systems. Yet the idea is to keep this class as simple as possible
+	delegating complex logics to other classes.'''
+	class QuitProcessor(CommandProcessor):
+		def __init__(self, hless):
+			CommandProcessor.__init__(self)
+			self.hless = hless
+	
+		def run(self):
+			self.hless.keep_running = False
+	
+	class DownProcessor(CommandProcessor):
+		def __init__(self, hless, buffer, screen):
+			CommandProcessor.__init__(self)
+			self.hless = hless
+			self.buffer = buffer
+			self.screen = screen
+		
+		def run(self):
+			# This is the simple case - we're not at the bottom of the screen.
+			if self.hless.cursor != self.screen.bottom:
+				tmp = self.buffer.get_next_line(self.hless.cursor)
+				if tmp is not None:
+					self.hless.cursor = tmp
+				return
+	
+			# We're at the bottom. Moving the cursor one line down...
+			line = self.buffer.get_string(self.screen.bottom)
+			lines = self.screen.split_line(line)
+	
+			if self.screen.line_in_bottom == len(lines) - 1:
+				tmp = self.buffer.get_next_line(self.hless.cursor)
+				if tmp is None:
+					return
+				self.hless.cursor = tmp
+	
+			# Now moving the screen one line lower.
+			line = self.buffer.get_string(self.hless.current)
+			lines = self.screen.split_line(line)
+			log.keys.debug('Current line has %d sub-lines and we are on subline %d', len(lines), self.hless.line_in_current)
+			self.hless.line_in_current += 1
+			if self.hless.line_in_current >= len(lines):
+				tmp = self.buffer.get_next_line(self.hless.current)
+				if tmp is None:
+					self.hless.line_in_current -= 1
+					return
+				self.hless.current = tmp
+				self.hless.line_in_current = 0
+	
+	class UpProcessor(CommandProcessor):
+		def __init__(self, hless, buffer, screen):
+			CommandProcessor.__init__(self)
+			self.hless = hless
+			self.buffer = buffer
+			self.screen = screen
+	
+		def run(self):
+			if self.hless.cursor != self.hless.current:
+				self.hless.cursor = self.buffer.get_prev_line(self.hless.cursor)
+				return
+	
+			if self.hless.line_in_current != 0:
+				self.hless.line_in_current -= 1
+				return
+	
+			if self.hless.current == self.buffer.get_first_line():
+				return
+	
+			self.hless.current = self.buffer.get_prev_line(self.hless.current)
+			line = self.buffer.get_string(self.hless.current)
+			lines = self.screen.split_line(line)
+			self.hless.line_in_current = len(lines) - 1
+			self.hless.cursor = self.buffer.get_prev_line(self.hless.cursor)
+	
+	class PageDownProcessor(CommandProcessor):
+		def __init__(self, hless, buffer, screen):
+			CommandProcessor.__init__(self)
+			self.hless = hless
+			self.buffer = buffer
+			self.screen = screen
+	
+		def run(self):
+			bottom_most = self.buffer.get_last_line()
+			if self.screen.bottom == bottom_most:
+				self.hless.cursor = self.screen.bottom
+				return
+
+			new_cursor_offset = self.hless.cursor.offset - self.hless.current.offset + self.screen.bottom.offset
+	
+			self.hless.current = self.screen.bottom
+			self.hless.line_in_current = 0
+	
+			self.screen.set_position(self.hless.current, self.hless.current, 0)
+			self.screen.stage_redraw_screen()
+	
+			self.hless.cursor = self.buffer.mediate_line(self.hless.current, self.screen.bottom, new_cursor_offset)
+	
+	class PageUpProcessor(CommandProcessor):
+		def __init__(self, hless, buffer, screen):
+			CommandProcessor.__init__(self)
+			self.hless = hless
+			self.buffer = buffer
+			self.screen = screen
+	
+		def run(self):
+			if self.hless.current == self.buffer.get_first_line():
+				self.hless.line_in_current = 0
+				self.hless.cursor = self.screen.current
+				return
+	
+			old_current = self.screen.current
+	
+			self.screen.bottom = self.screen.current
+			self.screen.line_in_bottom = 0
+			self.screen.stage_reversed_redraw_screen()
+	
+			self.hless.current = self.screen.current
+			self.hless.line_in_current = 0
+	
+			new_cursor_offset = self.hless.cursor.offset - old_current.offset + self.hless.current.offset
+	
+			self.hless.cursor = self.buffer.mediate_line(self.hless.current, self.screen.bottom, new_cursor_offset)
+	
+	class GotoTopProcessor(CommandProcessor):
+		def __init__(self, hless, buffer, screen):
+			CommandProcessor.__init__(self)
+			self.hless = hless
+			self.buffer = buffer
+			self.screen = screen
+	
+		def run(self):
+			self.hless.current = self.buffer.get_first_line()
+			self.hless.line_in_current = 0
+			self.hless.cursor = self.buffer.get_first_line()
+	
+	class GotoBottomProcessor(CommandProcessor):
+		def __init__(self, hless, buffer, screen):
+			CommandProcessor.__init__(self)
+			self.hless = hless
+			self.buffer = buffer
+			self.screen = screen
+	
+		def run(self):
+			bottom = self.buffer.get_last_line()
+			line = self.buffer.get_string(bottom)
+			lines = line.splitlines()
+			self.screen.bottom = bottom
+			self.screen.line_in_bottom = len(lines) - 1
+			self.screen.stage_reversed_redraw_screen()
+	
+			self.hless.current = self.screen.current
+			self.hless.line_in_current = self.screen.line_in_current
+			self.hless.cursor = bottom
+
+	class ColonProcessor(CommandProcessor):
+		def __init__(self, hless, buffer, screen):
+			CommandProcessor.__init__(self)
+			self.hless = hless
+			self.buffer = buffer
+			self.screen = screen
+
+		def goto_eof(self):
+			bottom = self.buffer.get_last_line()
+			line = self.buffer.get_string(bottom)
+			lines = line.splitlines()
+			self.screen.bottom = bottom
+			self.screen.line_in_bottom = len(lines) - 1
+			self.screen.stage_reversed_redraw_screen()
+
+			self.hless.current = self.screen.current
+			self.hless.line_in_current = self.screen.line_in_current
+			self.hless.cursor = bottom
+
+		def jump_lines(self, num_lines, position):
+			'''Jump given number of lines forward starting from specified position'''
+			line = position
+			while num_lines != 0:
+				if num_lines < 0:
+					line = self.buffer.get_prev_line(line)
+					num_lines += 1
+				elif num_lines > 0:
+					line = self.buffer.get_next_line(line)
+					num_lines -= 1
+			self.hless.cursor = self.screen.cursor = line
+			self.screen.stage_redraw_from_middle()
+			self.hless.current = self.screen.current
+			self.hless.line_in_current = 0
+
+		def run(self):
+			edit = EditBox(self.hless.scr, 'Goto line', self.hless.goto_line_history)
+			line, special_enter, mode = edit.run()
+			line = line.lower().strip()
+
+			# Handling plain number
+			m = re.match('(\d+)', line)
+			if m:
+				num = int(m.group(1))
+				self.jump_lines(num, self.buffer.get_first_line())
+				return
+
+			m = re.match('([+-]\d+)', line)
+			if m:
+				num = int(m.group(1))
+				self.jump_lines(num, self.hless.cursor)
+				return
+
+	class DebugProcessor(CommandProcessor):
+		def __init__(self, hless):
+			CommandProcessor.__init__(self)
+			self.hless = hless
+
+		def run(self):
+			MessageBox(self.hless, "Hello world")
+
+	def __init__(self, scr):
+		self.keep_running = True
+		self.scr = scr
+
+		self.file = self.open_file()
+		self.buffer = Buffer(self.file)
+		self.screen = Screen(self, scr, self.buffer)
+
+		self.cursor = self.buffer.get_first_line()
+		self.current = self.cursor
+		self.line_in_current = 0
+
+		self.goto_line_history = []
+
+		self.input = InputProcessor()
+		self.input.add_processor([ord('q')], Hless.QuitProcessor(self))
+		self.input.add_processor([curses.KEY_DOWN], Hless.DownProcessor(self, self.buffer, self.screen))
+		self.input.add_processor([curses.KEY_UP], Hless.UpProcessor(self, self.buffer, self.screen))
+		self.input.add_processor([curses.KEY_NPAGE], Hless.PageDownProcessor(self, self.buffer, self.screen))
+		self.input.add_processor([curses.KEY_PPAGE], Hless.PageUpProcessor(self, self.buffer, self.screen))
+		self.input.add_processor([ord('g')], Hless.GotoTopProcessor(self, self.buffer, self.screen))
+		self.input.add_processor([ord('G')], Hless.GotoBottomProcessor(self, self.buffer, self.screen))
+		self.input.add_processor([ord(':')], Hless.ColonProcessor(self, self.buffer, self.screen))
+
+		self.input.add_processor([ord('Z')], Hless.DebugProcessor(self))
+
+	def open_file(self):
+		'''This method identifies file type according to config.filename and creates appropriate file object returning it.'''
+		return File(PlainFile(config.filename))
+
+	def read_input(self):
+		self.scr.timeout(-1)
+		c = self.scr.getch()
+		return c
+
+	def main(self):
+		while self.keep_running:
+			log.main.info('================================================================================================')
+			self.screen.set_position(self.cursor, self.current, self.line_in_current)
+			self.screen.redraw_screen()
+			log.main.info('------------------------------------------------------------------------------------------------')
+			c = self.read_input()
+			log.keys.info('Before processing %s, cursor at %d, current at %d/%d, bottom at %d/%d', key_name(c), 
+				self.cursor.offset, self.current.offset, self.line_in_current, self.screen.bottom.offset, self.screen.line_in_bottom)
+			self.input.process_command(c)
+			log.keys.info('After processing %s, cursor at %d, current at %d/%d, bottom at %d/%d', key_name(c), 
+				self.cursor.offset, self.current.offset, self.line_in_current, self.screen.bottom.offset, self.screen.line_in_bottom)
+
+def curses_main(scr):
+	global hless
+
+	log.main.info('################################################################################################')
+
+	hless = Hless(scr)
+	hless.main()
+
+def main():
+	__builtin__.config = Config()
+	__builtin__.log = Log()
+
+	log.setup_logs()
+	try:
+		parse_command_line()
+	except:
+		traceback.print_exc(file = sys.stdout)
+		sys.exit(-1)
+	curses.wrapper(curses_main)
+
+if __name__ == '__main__':
+	main()
+
