@@ -56,6 +56,8 @@ void Hless::on_quit_key()
 
 void Hless::on_down_key()
 {
+	// This the simplest case - cursor is not at the bottom line. Moving cursor
+	// one line down and returning.
 	if (_cursor != _bottom) {
 		Log2("Cursor is not at the bottom of the screen...");
 		_cursor++;
@@ -64,6 +66,10 @@ void Hless::on_down_key()
 
 	Log2("Cursor is at the bottom...");
 
+	// Cursor at the bottom. Here, depending on height of the bottom line we either
+	// move the cursor one line down or not. If we're at the last line in the bottom
+	// line, then we move cursor one line further. Otherwise, cursor stays where it is
+	// and we're moving the top of the screen.
 	Line line;
 	_buffer.read_line(_bottom, line);
 	line.strip_back();
@@ -76,14 +82,15 @@ void Hless::on_down_key()
 	Log2("There are " << lst.size() << " lines in the bottom line. Last visible line in bottom is " << 
 		 _line_in_bottom);
 
-	if (lst.size() == _line_in_bottom + 1) {
-		_current++;
-		_line_in_current = 0;
-	} else {
-		_line_in_current++;
+	if (_line_in_bottom == lst.size() - 1) {
+		_cursor++;
 	}
 
-	if (lst.size() == _line_in_bottom + 1) {
+	_buffer.read_line(_current, line);
+	lst.clear();
+	line.split_lines(_screen.get_width(), lst);
+	_line_in_current++;
+	if (_line_in_current >= lst.size()) {
 		_current++;
 		_line_in_current = 0;
 	}

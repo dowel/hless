@@ -28,6 +28,8 @@ public:
 	void init(char* ptr, u32 length);
 	void init_copyless(char* ptr, u32 length);
 
+	void reset();
+
 	void strip_back();
 
 	char* get_text()

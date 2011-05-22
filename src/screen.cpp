@@ -43,7 +43,7 @@ void Screen::redraw_screen(Buffer::iterator& in_current,
 	Log1("Asked to redraw screen starting from " << current);
 	Log1("Cursor is " << cursor);
 	while ((n < _text_height) && (current != Buffer::end())) {
-		Log1("Considering line " << current << " for drawing on the screen");
+		Log1("Considering line " << current << " for drawing");
 
 		Line line;
 		_buffer.read_line(current, line);

@@ -19,15 +19,7 @@ Line::Line(Line& other)
 
 Line::~Line()
 {
-	if (_original_string) {
-		Log3("Deleting pointer " << std::hex << reinterpret_cast<void*>(_original_string));
-		delete _original_string;
-	}
-
-	if (_temp_buffer) {
-		Log3("Deleting pointer " << std::hex << reinterpret_cast<void*>(_temp_buffer));
-		delete _temp_buffer;
-	}
+	reset();
 }
 
 void Line::init(char* str, u32 length)
@@ -47,6 +39,19 @@ void Line::init_copyless(char* str, u32 length)
 	_original_length = length;
 	_string = str;
 	_original_string = str;
+}
+
+void Line::reset()
+{
+	if (_original_string) {
+		Log3("Deleting pointer " << std::hex << reinterpret_cast<void*>(_original_string));
+		delete _original_string;
+	}
+
+	if (_temp_buffer) {
+		Log3("Deleting pointer " << std::hex << reinterpret_cast<void*>(_temp_buffer));
+		delete _temp_buffer;
+	}
 }
 
 void Line::strip_back()
