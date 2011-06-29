@@ -17,7 +17,7 @@ Screen::Screen(Buffer& buffer)
 	_maxx = stdscr->_maxx;
 	_maxy = stdscr->_maxy;
 	_width = _maxx + 1;
-	_text_height = _maxy - status_bar_height;
+	_text_height = _maxy + 1 - status_bar_height;
 
 	cbreak();
 	keypad(stdscr, TRUE);
@@ -56,7 +56,7 @@ void Screen::redraw_screen(Buffer::iterator& in_current,
 		Log2("Line was split into " << lst.size() << " lines of " << _width << " characters");
 
 		for (it = lst.begin(), i = 0; (it != lst.end()) && (i < line_in_current); it++, i++);
-		for (; it != lst.end(); it++, n++) {
+		for (line_in_bottom = i; (n < _text_height) && (it != lst.end()); it++, n++, line_in_bottom++) {
 			if (current == cursor) {
 				_brush.draw_line(n, *it->get(), Brush::cursor_color);
 			} else {
