@@ -158,6 +158,7 @@ Buffer::iterator Buffer::iterator::operator--() // prefix form
 
 void Buffer::read_line(iterator& it, Line& line)
 {
+	line.reset();
 	line._length = it->get_length();
 	line._string = new char[line._length + 1];
 	Log3("Allocated pointer " << std::hex << reinterpret_cast<void*>(line._string));
