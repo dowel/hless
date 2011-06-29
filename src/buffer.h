@@ -131,6 +131,7 @@ public:
 
 		friend std::ostream& operator<<(std::ostream& os, Buffer::iterator& it);
 		friend bool operator==(const Buffer::iterator& first, const Buffer::iterator& second);
+		friend bool operator!=(const Buffer::iterator& first, const Buffer::iterator& second);
 
 	private:
 		Chunk* _chunk;
