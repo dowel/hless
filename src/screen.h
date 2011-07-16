@@ -12,9 +12,32 @@ public:
 
 	static const int status_bar_height;
 
+	/**
+	 * Redraws screen returning new bottom and line in it. 
+	 *  
+	 * @param current 
+	 * @param line_in_current 
+	 * @param cursor 
+	 * @param bottom 
+	 * @param line_in_bottom 
+	 */
 	void redraw_screen(Buffer::iterator& current, 
 		u32 line_in_current,
 		Buffer::iterator& cursor,
+		Buffer::iterator& bottom,
+		u32& line_in_bottom);
+
+	/**
+	 * Stages screen redrawing without actually doing anything. current and line_in_current expected to 
+	 * be lines where to start from. bottom and line_in_bottom filled with bottom line after redrawing.
+	 * 
+	 * @param current 
+	 * @param line_in_current 
+	 * @param bottom 
+	 * @param line_in_bottom 
+	 */
+	void stage_redraw_screen(Buffer::iterator& current,
+		u32 line_in_current,
 		Buffer::iterator& bottom,
 		u32& line_in_bottom);
 

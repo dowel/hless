@@ -23,6 +23,8 @@ Buffer::Chunk::Chunk(std::string name, Readable& file, u32 chunk_index, u64 star
 	, _file(file)
 	, _chunk_index(chunk_index)
 	, _start(start)
+	, _next(0)
+	, _prev(0)
 { }
 
 void Buffer::Chunk::split_lines(char* buffer, u32 length)

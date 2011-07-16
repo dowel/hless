@@ -11,11 +11,33 @@ public:
 	Hless(Screen& screen, Buffer& buffer);
 	~Hless();
 
+	/**
+	 * This is the main routine.
+	 */
 	void run();
 
+	/**
+	 * Reads line from buffer and splits it into list of smaller lines according to width of the screen.
+	 * 
+	 * @param it 
+	 * @param res 
+	 */
+	void read_and_split(Buffer::iterator& it, LineList& res);
+	/**
+	 * Finds closest line to specified offset in the buffer.
+	 * 
+	 * @param offset 
+	 * @param it 
+	 */
+	void closest_line(u64 offset, Buffer::iterator& it);
+
+	/**
+	 * These are various key handlers.
+	 */
 	void on_quit_key();
 	void on_down_key();
 	void on_up_key();
+	void on_next_page();
 
 private:
 	Screen& _screen;

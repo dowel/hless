@@ -55,13 +55,51 @@ void Screen::redraw_screen(Buffer::iterator& in_current,
 		line.split_lines(_width, lst);
 		Log2("Line was split into " << lst.size() << " lines of " << _width << " characters");
 
-		for (it = lst.begin(), i = 0; (it != lst.end()) && (i < line_in_current); it++, i++);
-		for (; (it != lst.end()) && (n < _text_height); it++, n++) {
+		for (it = lst.begin(), i = 0; (i < line_in_current) && (it != lst.end()); it++, i++);
+		for (line_in_bottom = 0; (it != lst.end()) && (n < _text_height); it++, n++, line_in_bottom++) {
 			if (current == cursor) {
 				_brush.draw_line(n, *it->get(), Brush::cursor_color);
 			} else {
 				_brush.draw_line(n, *it->get());
 			}
+		}
+		if (line_in_bottom >= 1) {
+			line_in_bottom--;
+		}
+		line_in_current = 0;
+
+		bottom = current;
+		current++;
+	}
+}
+
+void Screen::stage_redraw_screen(Buffer::iterator& in_current,
+	u32 line_in_current,
+	Buffer::iterator& bottom,
+	u32& line_in_bottom)
+{
+	u32 n = 0, i;
+	Buffer::iterator current = in_current;
+
+	Log1("Asked to stage redraw screen starting from " << current);
+	while ((n < _text_height) && (current != Buffer::end())) {
+		Log2("Considering line " << current << " for drawing");
+
+		Line line;
+		_buffer.read_line(current, line);
+		line.strip_back();
+
+		LineList lst;
+		LineList::iterator it;
+
+		line.split_lines(_width, lst);
+		Log2("Line was split into " << lst.size() << " lines of " << _width << " characters");
+
+		for (it = lst.begin(), i = 0; (i < line_in_current) && (it != lst.end()); it++, i++);
+		for (line_in_bottom = 0; (it != lst.end()) && (n < _text_height); it++, n++, line_in_bottom++);
+
+		if (line_in_bottom >= 1) {
+			line_in_bottom--;
 		}
 		line_in_current = 0;
 
