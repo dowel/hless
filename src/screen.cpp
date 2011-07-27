@@ -40,6 +40,8 @@ void Screen::redraw_screen(Buffer::iterator& in_current,
 	u32 n = 0, i;
 	Buffer::iterator current = in_current;
 
+	erase();
+
 	Log1("Asked to redraw screen starting from " << current);
 	Log1("Cursor is " << cursor);
 	while ((n < _text_height) && (current != Buffer::end())) {

@@ -19,17 +19,20 @@ public:
 	/**
 	 * Reads line from buffer and splits it into list of smaller lines according to width of the screen.
 	 * 
-	 * @param it 
-	 * @param res 
+	 * @param it - iterator pointing to the line to read.
+	 * @param res - list that returns after the split.
 	 */
 	void read_and_split(Buffer::iterator& it, LineList& res);
 	/**
 	 * Finds closest line to specified offset in the buffer.
 	 * 
-	 * @param offset 
-	 * @param it 
+	 * @param offset - offset we're looking for.
+	 * @param before_hint - iterator pointing to line somewhere before the offset.
+	 * @param after_hint - iterator pointing to line somewhere after the offset. 
+	 *  
+	 * @return Buffer::iterator - iterator pointing to the closest line to the offset. 
 	 */
-	void closest_line(u64 offset, Buffer::iterator& it);
+	Buffer::iterator closest_line(u64 offset, Buffer::iterator& before_hint, Buffer::iterator& after_hint);
 
 	/**
 	 * These are various key handlers.

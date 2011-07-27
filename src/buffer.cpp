@@ -120,8 +120,9 @@ Buffer::iterator& Buffer::iterator::operator ++(int) // suffix form
 	if (_line_index >= _chunk->get_size()) {
 		_chunk->grow_down();
 	}
-	if (_line_index >= _chunk->get_size() - 1) {
-		return *this;
+	if (_line_index >= _chunk->get_size()) {
+		Log2("Iterator reached end of buffer...");
+		*this = Buffer::end();
 	}
 	return *this;
 }
@@ -143,6 +144,8 @@ Buffer::iterator& Buffer::iterator::operator--(int) // suffix form
 	}
 
 	if (_line_index == 0) {
+		Log2("Iterator reached beginning of buffer...");
+		*this = Buffer::end();
 		return *this;
 	}
 
@@ -221,6 +224,7 @@ std::ostream& operator<<(std::ostream& os, Buffer::MetaLine& line)
 
 bool operator==(const Buffer::iterator& first, const Buffer::iterator& second)
 {
+//	Log1("Calling operator== on " << const_cast<Buffer::iterator&>(first) << " and " << const_cast<Buffer::iterator&>(second));
 	if ((first._chunk == second._chunk) && (first._line_index == second._line_index)) {
 		return true;
 	}

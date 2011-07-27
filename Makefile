@@ -1,5 +1,5 @@
 TARGET = hless
-SRC = main hless file buffer log screen plain_file cache input brush line
+SRC = main hless file buffer log screen plain_file cache input brush line error
 
 O = obj
 S = src
