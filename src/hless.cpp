@@ -109,12 +109,11 @@ void Hless::on_down_key()
 	Log2("Cursor is at the bottom...");
 
 	Buffer::iterator temp = _bottom;
-	if (++temp == Buffer::end()) {
+	temp++;
+	if (temp == Buffer::end()) {
 		Log2("Cursor is at the bottom of the input file...");
 		return;
 	}
-
-	Log2("Cursor is at the bottom...");
 
 	// Cursor at the bottom. Here, depending on height of the bottom line we either
 	// move the cursor one line down or not. If we're at the last line in the bottom
@@ -145,7 +144,8 @@ void Hless::on_up_key()
 		Log2("Cursor is at the top of the screen...");
 
 		Buffer::iterator temp = _cursor;
-		if (--temp == Buffer::end()) {
+		temp--;
+		if (temp == Buffer::end()) {
 			Log2("Cursor is at the top of the input file...");
 			return;
 		}
