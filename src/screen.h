@@ -41,6 +41,11 @@ public:
 		Buffer::iterator& bottom,
 		u32& line_in_bottom);
 
+	void stage_reversed_redraw_screen(Buffer::iterator& bottom, 
+		u32 line_in_bottom, 
+		Buffer::iterator& current, 
+		u32& line_in_current)
+
 	u32 get_width() { return _width; }
 
 private:

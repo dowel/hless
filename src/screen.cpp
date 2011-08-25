@@ -110,3 +110,11 @@ void Screen::stage_redraw_screen(Buffer::iterator& in_current,
 	}
 }
 
+void Screen::stage_reversed_redraw_screen(Buffer::iterator& bottom, 
+	u32 line_in_bottom, 
+	Buffer::iterator& current, 
+	u32& line_in_current)
+{
+
+}
+

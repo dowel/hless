@@ -34,8 +34,8 @@ void Hless::run()
 	_input.register_input_sequence(tmp, KEY_HANDLER(Hless::on_up_key));
 	tmp = boost::assign::list_of(KEY_NPAGE);
 	_input.register_input_sequence(tmp, KEY_HANDLER(Hless::on_next_page));
-//  tmp = boost::assign::list_of(KEY_PPAGE);
-//  _input.register_input_sequence(tmp, KEY_HANDLER(Hless::on_up_key));
+	tmp = boost::assign::list_of(KEY_PPAGE);
+	_input.register_input_sequence(tmp, KEY_HANDLER(Hless::on_prev_page));
 
 	_current = _buffer.begin();
 	_cursor = _current;
@@ -199,5 +199,10 @@ void Hless::on_next_page()
 	if (_cursor->get_offset() > new_bottom->get_offset()) {
 		_cursor = new_bottom;
 	}
+}
+
+void Hless::on_prev_page()
+{
+
 }
 
