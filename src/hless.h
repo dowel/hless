@@ -17,13 +17,6 @@ public:
 	void run();
 
 	/**
-	 * Reads line from buffer and splits it into list of smaller lines according to width of the screen.
-	 * 
-	 * @param it - iterator pointing to the line to read.
-	 * @param res - list that returns after the split.
-	 */
-	void read_and_split(Buffer::iterator& it, LineList& res);
-	/**
 	 * Finds closest line to specified offset in the buffer.
 	 * 
 	 * @param offset - offset we're looking for.

@@ -31,6 +31,15 @@ Screen::~Screen()
 	endwin();
 }
 
+void Screen::read_and_split(Buffer::iterator& it, LineList& res)
+{
+	Line line;
+	_buffer.read_line(it, line);
+	line.strip_back();
+	res.clear();
+	line.split_lines(_width, res);	
+}
+
 void Screen::redraw_screen(Buffer::iterator& in_current, 
 	u32 line_in_current,
 	Buffer::iterator& cursor,
@@ -45,18 +54,14 @@ void Screen::redraw_screen(Buffer::iterator& in_current,
 	Log1("Asked to redraw screen starting from " << current);
 	Log1("Cursor is " << cursor);
 	while ((n < _text_height) && (current != Buffer::end())) {
-		Log1("Considering line " << current << " for drawing");
-
-		Line line;
-		_buffer.read_line(current, line);
-		line.strip_back();
+		Log3("Considering line " << current << " for drawing");
 
 		LineList lst;
 		LineList::iterator it;
 
-		line.split_lines(_width, lst);
-		Log2("Line was split into " << lst.size() << " lines of " << _width << " characters");
+		read_and_split(current, lst);
 
+		Log3("Line was split into " << lst.size() << " lines of " << _width << " characters");
 		for (it = lst.begin(), i = 0; (i < line_in_current) && (it != lst.end()); it++, i++);
 		for (line_in_bottom = 0; (it != lst.end()) && (n < _text_height); it++, n++, line_in_bottom++) {
 			if (current == cursor) {
@@ -85,17 +90,9 @@ void Screen::stage_redraw_screen(Buffer::iterator& in_current,
 
 	Log1("Asked to stage redraw screen starting from " << current);
 	while ((n < _text_height) && (current != Buffer::end())) {
-		Log2("Considering line " << current << " for drawing");
-
-		Line line;
-		_buffer.read_line(current, line);
-		line.strip_back();
-
 		LineList lst;
 		LineList::iterator it;
-
-		line.split_lines(_width, lst);
-		Log2("Line was split into " << lst.size() << " lines of " << _width << " characters");
+		read_and_split(current, lst);
 
 		for (it = lst.begin(), i = 0; (i < line_in_current) && (it != lst.end()); it++, i++);
 		for (line_in_bottom = 0; (it != lst.end()) && (n < _text_height); it++, n++, line_in_bottom++);
@@ -115,6 +112,27 @@ void Screen::stage_reversed_redraw_screen(Buffer::iterator& bottom,
 	Buffer::iterator& current, 
 	u32& line_in_current)
 {
+	Log1("Asked to stage reversed redraw screen starting from " << bottom << "/" << line_in_bottom);
 
+	Buffer::iterator it = bottom;
+	u32 temp = line_in_bottom;
+	u32 i = _text_height;
+	LineList lst;
+	while ((i > 0) && (it != Buffer::end())) {
+		lst.clear();
+		read_and_split(it, lst);
+		u32 size = lst.size(); // somehow std::min doesn't like to compare lst.size() and u32...
+		i -= std::min(temp, size); // decrease by either line_in_bottom or lst.size()
+		temp = 0xffffffff;
+		it--;
+	}
+
+	if (it == Buffer::end()) {
+		current = _buffer.begin();
+		line_in_current = 0;
+	} else {
+		current = it;
+		line_in_current = lst.size() + i;
+	}
 }
 

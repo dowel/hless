@@ -33,7 +33,7 @@ int main(int argc, char* argv[])
 	Logging::SetMinLevel("cache", Logging::LOG_LEVEL2);
 	Logging::SetMinLevel("plain", Logging::LOG_LEVEL2);
 	Logging::SetMinLevel("input", Logging::LOG_LEVEL2);
-	Logging::SetMinLevel("brush", Logging::LOG_LEVEL2);
+	Logging::SetMinLevel("brush", Logging::LOG_LEVEL_WARN);
 	Logging::SetMinLevel("line", Logging::LOG_LEVEL_WARN);
 
 	Log1("Hello and welcome to hless log file!!!");

@@ -41,10 +41,28 @@ public:
 		Buffer::iterator& bottom,
 		u32& line_in_bottom);
 
+	/**
+	 * Stages screen redrawing without actually doing anything. Unlike stage_redraw_screen(), this 
+	 * version redraws from bottom up. bottom and line_in_bottom expected to be where screen ends. 
+	 * current and line_in_current set to the top of the screen. 
+	 * 
+	 * @param bottom 
+	 * @param line_in_bottom 
+	 * @param current 
+	 * @param line_in_current 
+	 */
 	void stage_reversed_redraw_screen(Buffer::iterator& bottom, 
 		u32 line_in_bottom, 
 		Buffer::iterator& current, 
-		u32& line_in_current)
+		u32& line_in_current);
+
+	/**
+	 * Reads line from buffer and splits it into list of smaller lines according to width of the screen.
+	 * 
+	 * @param it - iterator pointing to the line to read.
+	 * @param res - list that returns after the split.
+	 */
+	void read_and_split(Buffer::iterator& it, LineList& res);
 
 	u32 get_width() { return _width; }
 

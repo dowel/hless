@@ -59,15 +59,6 @@ void Hless::run()
 	}
 }
 
-void Hless::read_and_split(Buffer::iterator& it, LineList& res)
-{
-	Line line;
-	_buffer.read_line(it, line);
-	line.strip_back();
-	res.clear();
-	line.split_lines(_screen.get_width(), res);	
-}
-
 Buffer::iterator Hless::closest_line(u64 offset, Buffer::iterator& before_hint, Buffer::iterator& after_hint)
 {
 	Buffer::iterator temp, old_temp;
@@ -121,7 +112,7 @@ void Hless::on_down_key()
 	// and we're moving the top of the screen.
 	LineList lst;
 
-	read_and_split(_bottom, lst);
+	_screen.read_and_split(_bottom, lst);
 
 	Log2("There are " << lst.size() << " lines in the bottom line. Last visible line in bottom is " << 
 		 _line_in_bottom);
@@ -130,7 +121,7 @@ void Hless::on_down_key()
 		_cursor++;
 	}
 
-	read_and_split(_current, lst);
+	_screen.read_and_split(_current, lst);
 	_line_in_current++;
 	if (_line_in_current >= lst.size()) {
 		_current++;
@@ -157,7 +148,7 @@ void Hless::on_up_key()
 				_current--;
 
 				LineList lst;
-				read_and_split(_current, lst);
+				_screen.read_and_split(_current, lst);
 
 				_line_in_current = lst.size() - 1;
 
@@ -183,7 +174,7 @@ void Hless::on_next_page()
 	u32 line_in_new_bottom;
 
 	_screen.stage_redraw_screen(_current, _line_in_current, new_bottom, line_in_new_bottom);
-	Log1("New bottom expected to be at " << new_bottom << ", in line " << line_in_new_bottom);
+	Log1("New bottom expected to be at " << new_bottom << "/" << line_in_new_bottom);
 
 	if (new_bottom == _current) {
 		_current = old_current;
@@ -203,6 +194,22 @@ void Hless::on_next_page()
 
 void Hless::on_prev_page()
 {
+	// Let's say we're already at the beginning of the file. Moving cursor to the top and bailing out.
+	if (_current == _buffer.begin()) {
+		_line_in_current = 0;
+		_cursor = _current;
+		return;
+	}
 
+	// Calculating new current...
+	Buffer::iterator old_current = _current;
+	_bottom = _current;
+	_line_in_bottom = 0;
+	_screen.stage_reversed_redraw_screen(_bottom, _line_in_bottom, _current, _line_in_current);
+	Log1("New current expected to be at " << _current << "/" << _line_in_current);
+
+	// Now moving the cursor...
+	u32 offset = old_current->get_offset() - _current->get_offset();
+	_cursor = closest_line(_cursor->get_offset() - offset, _current, _bottom);
 }
 
