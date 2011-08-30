@@ -12,6 +12,7 @@ Screen::Screen(Buffer& buffer)
 {
 	initscr();
 	start_color();
+	use_default_colors();
 	_brush.init_colors();
 
 	_maxx = stdscr->_maxx;

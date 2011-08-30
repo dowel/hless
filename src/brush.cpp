@@ -6,12 +6,20 @@ static __attribute__((unused)) const char* MODULE_NAME = "brush";
 Brush::Color* Brush::text_color = 0;
 Brush::Color* Brush::cursor_color = 0;
 
-u32 Brush::Color::_last_pair = 0;
+u32 Brush::Color::_last_pair = 1;
 
 void Brush::init_colors()
 {
-	Brush::text_color = new Brush::Color("text color", Brush::Color::WHITE, Brush::Color::BLACK);
+	Brush::text_color = new Brush::Color("text color");
 	Brush::cursor_color = new Brush::Color("cursor color", Brush::Color::BLACK, Brush::Color::YELLOW);
+}
+
+Brush::Color::Color(std::string name)
+	: _name(name)
+	, _fg(Brush::Color::NO_COLOR)
+	, _bg(Brush::Color::NO_COLOR)
+{
+	_pair = 0;
 }
 
 Brush::Color::Color(std::string name, Brush::Color::ColorValue foreground, Brush::Color::ColorValue background)
@@ -19,9 +27,8 @@ Brush::Color::Color(std::string name, Brush::Color::ColorValue foreground, Brush
 	, _fg(foreground)
 	, _bg(background)
 {
-	_last_pair++;
-	_pair = _last_pair;
-	init_pair(_last_pair, _fg, _bg);
+	_pair = _last_pair++;
+	init_pair(_pair, _fg, _bg);
 }
 
 Brush::Color::~Color()

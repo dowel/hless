@@ -224,7 +224,6 @@ std::ostream& operator<<(std::ostream& os, Buffer::MetaLine& line)
 
 bool operator==(const Buffer::iterator& first, const Buffer::iterator& second)
 {
-//	Log1("Calling operator== on " << const_cast<Buffer::iterator&>(first) << " and " << const_cast<Buffer::iterator&>(second));
 	if ((first._chunk == second._chunk) && (first._line_index == second._line_index)) {
 		return true;
 	}

@@ -16,6 +16,7 @@ public:
 	public:
 		enum ColorValue
 		{
+			NO_COLOR = -1,
 			BLACK = COLOR_BLACK,
 			RED = COLOR_RED,
 			GREEN = COLOR_GREEN,
@@ -23,9 +24,10 @@ public:
 			BLUE = COLOR_BLUE,
 			MAGENTA = COLOR_MAGENTA,
 			CYAN = COLOR_CYAN,
-			WHITE = COLOR_WHITE
+			WHITE = COLOR_WHITE,
 		};
 
+		Color(std::string name);
 		Color(std::string name, ColorValue foreground, ColorValue background);
 		~Color();
 
