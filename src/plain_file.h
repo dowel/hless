@@ -13,6 +13,7 @@ public:
 	virtual void open(std::string filename);
 	virtual void close();
 	virtual u32 read(u32 how_much, u64 offset, char* buffer);
+	virtual u64 get_size();
 
 private:
 	int _fd;

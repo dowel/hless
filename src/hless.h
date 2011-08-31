@@ -35,6 +35,7 @@ public:
 	void on_up_key();
 	void on_next_page();
 	void on_prev_page();
+	void on_goto_end();
 
 private:
 	Screen& _screen;

@@ -36,6 +36,8 @@ void Hless::run()
 	_input.register_input_sequence(tmp, KEY_HANDLER(Hless::on_next_page));
 	tmp = boost::assign::list_of(KEY_PPAGE);
 	_input.register_input_sequence(tmp, KEY_HANDLER(Hless::on_prev_page));
+	tmp = boost::assign::list_of('G');
+	_input.register_input_sequence(tmp, KEY_HANDLER(Hless::on_goto_end));
 
 	_current = _buffer.begin();
 	_cursor = _current;
@@ -211,5 +213,15 @@ void Hless::on_prev_page()
 	// Now moving the cursor...
 	u32 offset = old_current->get_offset() - _current->get_offset();
 	_cursor = closest_line(_cursor->get_offset() - offset, _current, _bottom);
+}
+
+void Hless::on_goto_end()
+{
+	_bottom = _buffer.end();
+	_line_in_bottom = 0;
+
+	_cursor = _bottom;
+
+	_screen.stage_reversed_redraw_screen(_bottom, _line_in_bottom, _current, _line_in_current);
 }
 

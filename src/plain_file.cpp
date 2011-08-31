@@ -2,6 +2,7 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <errno.h>
+#include <unistd.h>
 
 #include "plain_file.h"
 #include "error.h"
@@ -45,5 +46,17 @@ u32 PlainFile::read(u32 how_much, u64 offset, char* buffer)
 	}
 
 	return n;
+}
+
+u64 PlainFile::get_size()
+{
+	struct stat st;
+	if (fstat(_fd, &st) < 0) {
+		std::ostringstream os;
+		os << "Failed to obtain file size " << errno;
+		throw Exception(os.str());
+	}
+
+	return st.st_size;
 }
 
