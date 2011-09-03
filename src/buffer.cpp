@@ -43,8 +43,10 @@ Buffer::iterator& Buffer::iterator::operator--(int) // suffix form
 {
 	if (_line_index == 0) {
 		u64 size = _chunk->get_size();
+		Log3("Reached end of chunk. Old size " << _chunk->get_size());
 		_chunk->grow_up();
 		_line_index = _chunk->get_size() - size;
+		Log3("After growing chunk, new index " << _line_index << ", new size " << _chunk->get_size());
 	}
 
 	if (_line_index == 0) {
@@ -70,7 +72,7 @@ void Buffer::read_line(iterator& it, Line& line)
 	line.reset();
 	line._length = it->get_length();
 	line._string = new char[line._length + 1];
-	Log3("Allocated pointer " << std::hex << reinterpret_cast<void*>(line._string));
+	Log4("Allocated pointer " << std::hex << reinterpret_cast<void*>(line._string) << std::dec);
 	_file.read(line._length, it->get_offset(), line._string);
 	line._string[line._length] = 0;
 
@@ -93,11 +95,16 @@ Buffer::iterator Buffer::back()
 {
 	// First, checking if last chunk in the chunk dequeu is reasonably close to the end of the buffer.
 	Chunk* last_chunk = _chunks.back();
-	if (last_chunk->get_start() + last_chunk->get_length()) {
-
+	if (_file.get_size() - last_chunk->get_end() < Config::chunk_grow_size) {
+		last_chunk->grow_down();
+	} else {
+		last_chunk = new Chunk("100%", _file, _chunks.size(), _file.get_size());
+		last_chunk->grow_up();
+		_chunks.push_back(last_chunk);
 	}
 
-	iterator it(last_chunk, last_chunk->get_line(last_chunk->get_size()).get_offset());
+	iterator it(last_chunk, last_chunk->get_size() - 1);
+	Log2("Returning last line in the buffer " << it);
 	return it;
 }
 

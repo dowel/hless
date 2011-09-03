@@ -2,13 +2,14 @@
 #include "log.h"
 #include "config.h"
 
-static __attribute__((unused)) const char* MODULE_NAME = "buffer";
+static __attribute__((unused)) const char* MODULE_NAME = "chunk";
 
 Chunk::Chunk(std::string name, Readable& file, u32 chunk_index, u64 start)
 	: _name(name)
 	, _file(file)
 	, _chunk_index(chunk_index)
 	, _start(start)
+	, _length(0)
 	, _next(0)
 	, _prev(0)
 { }
@@ -27,6 +28,24 @@ void Chunk::split_lines(char* buffer, u32 length)
 		i++;
 	}
 	_length += old_i;
+}
+
+void Chunk::split_lines_reversed(char* buffer, u32 length)
+{
+	u32 i = length - 1;
+	while (i > 0) {
+		i--;
+		if (buffer[i] == '\n') {
+			MetaLine line(_start + _length + i, length - i);
+			Log2("Adding line " << line);
+			_lines.push_front(line);
+			length = i;
+		}
+	}
+
+	MetaLine line(_start + _length, length);
+	Log2("Adding line " << line);
+	_lines.push_front(line);
 }
 
 void Chunk::grow_up()
@@ -60,6 +79,8 @@ void Chunk::grow_up()
 		how_much = Config::chunk_grow_size;
 	}
 
+	Log3("Chunk growing by " << how_much << " starting from " << start_from);
+
 	char buffer[how_much];
 	u32 n = 0;
 	_file.read(how_much, start_from, buffer);
@@ -69,13 +90,18 @@ void Chunk::grow_up()
 	 * end of previous chunk, then we're ok. Otherwise, we have to find next available 
 	 * end of line and start from it. 
 	 */
-	if (_prev && _prev->_start + _prev->_length != start_from) {
+	if ((_prev && (_prev->_start + _prev->_length != start_from)) || !_prev) {
 		while ((buffer[n] != '\n') && (n < how_much)) {
 			n++;
 		}
+		n++;
 	}
 
-	split_lines(&buffer[n], how_much - n);
+	start_from += n;
+	how_much -= n;
+	_start = start_from;
+
+	split_lines_reversed(&buffer[n], how_much);
 	Log2("Chunk after growing: " << this);
 }
 

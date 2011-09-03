@@ -39,7 +39,7 @@ void PlainFile::close()
 u32 PlainFile::read(u32 how_much, u64 offset, char* buffer)
 {
 	s32 n = ::pread(_fd, buffer, how_much, offset);
-	if (n < 0) {
+	if (n <= 0) {
 		std::ostringstream os;
 		os << "pread() returned " << n << ". errno set to " << errno;
 		throw Exception(os.str());

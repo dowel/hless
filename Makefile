@@ -7,6 +7,7 @@ S = src
 CXX = g++
 CXXFLAGS = -Wall -g
 LIBS = -pthread -lncurses
+LDFLAGS = -rdynamic $(LIBS)
 
 _TARGET = $(TARGET)
 _OBJS = $(patsubst %,$O/%.o,$(SRC))
@@ -16,7 +17,7 @@ all: $(_TARGET)
 
 $(_TARGET): $(_OBJS)
 	@echo [LD] $(_TARGET)
-	@$(CXX) $(LIBS) $(_OBJS) -o $(_TARGET)
+	@$(CXX) $(LDFLAGS) $(_OBJS) -o $(_TARGET)
 
 $O/%.o: $S/%.cpp
 	@echo [CXX] $@

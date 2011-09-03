@@ -217,8 +217,10 @@ void Hless::on_prev_page()
 
 void Hless::on_goto_end()
 {
-	_bottom = _buffer.end();
-	_line_in_bottom = 0;
+	_bottom = _buffer.back();
+	LineList lst;
+	_screen.read_and_split(_bottom, lst);
+	_line_in_bottom = lst.size() - 1;
 
 	_cursor = _bottom;
 

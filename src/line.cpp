@@ -27,7 +27,7 @@ void Line::init(char* str, u32 length)
 	_length = length;
 	_original_length = length;
 	_string = new char[_length + 1];
-	Log3("Allocated pointer " << std::hex << reinterpret_cast<void*>(_string));
+	Log3("Allocated pointer " << std::hex << reinterpret_cast<void*>(_string) << std::dec);
 	_original_string = _string;
 	memcpy(_string, str , _length);
 	_string[_length] = 0;
@@ -44,12 +44,12 @@ void Line::init_copyless(char* str, u32 length)
 void Line::reset()
 {
 	if (_original_string) {
-		Log3("Deleting pointer " << std::hex << reinterpret_cast<void*>(_original_string));
+		Log3("Deleting pointer " << std::hex << reinterpret_cast<void*>(_original_string) << std::dec);
 		delete _original_string;
 	}
 
 	if (_temp_buffer) {
-		Log3("Deleting pointer " << std::hex << reinterpret_cast<void*>(_temp_buffer));
+		Log3("Deleting pointer " << std::hex << reinterpret_cast<void*>(_temp_buffer) << std::dec);
 		delete _temp_buffer;
 	}
 }
@@ -70,12 +70,12 @@ void Line::strip_back()
 char* Line::get_text(u32 max_length)
 {
 	if (_temp_buffer) {
-		Log3("Deleting pointer " << std::hex << reinterpret_cast<void*>(_temp_buffer));
+		Log3("Deleting pointer " << std::hex << reinterpret_cast<void*>(_temp_buffer) << std::dec);
 		delete _temp_buffer;
 	}
 
 	_temp_buffer = new char[max_length + 1];
-	Log3("Allocated pointer " << std::hex << reinterpret_cast<void*>(_temp_buffer));
+	Log3("Allocated pointer " << std::hex << reinterpret_cast<void*>(_temp_buffer) << std::dec);
 	u32 len = max_length > _length ? _length : max_length;
 	memcpy(_temp_buffer, _string, len);
 	_temp_buffer[max_length] = 0;

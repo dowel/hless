@@ -123,9 +123,11 @@ void Screen::stage_reversed_redraw_screen(Buffer::iterator& bottom,
 		lst.clear();
 		read_and_split(it, lst);
 		u32 size = lst.size(); // somehow std::min doesn't like to compare lst.size() and u32...
+		Log2("Considering line " << it << ". Lines inside " << size << ", lines left " << i);
 		i -= std::min(temp, size); // decrease by either line_in_bottom or lst.size()
 		temp = 0xffffffff;
 		it--;
+		Log1("bottom " << bottom << ", it " << it);
 	}
 
 	if (it == Buffer::end()) {
@@ -135,5 +137,8 @@ void Screen::stage_reversed_redraw_screen(Buffer::iterator& bottom,
 		current = it;
 		line_in_current = lst.size() + i;
 	}
+
+	Log1("After staged redrawing, bottom " << bottom << "/" << line_in_bottom << ", current " << current << 
+		 "/" << line_in_current);
 }
 
