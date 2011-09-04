@@ -24,12 +24,12 @@ public:
 		  u64 start);
 
 	MetaLine& get_line(u64 index) { return _lines.at(index); }
-	u64 get_size() { return _lines.size(); }
+	u64 get_lines_count() { return _lines.size(); }
 	Chunk* get_next() { return _next; }
 	Chunk* get_prev() { return _prev; }
 	u64 get_length() { return _length; }
-	u64 get_start() { return _start; }
-	u64 get_end() { return _start + _length; }
+	u64 get_start_offset() { return _start_offset; }
+	u64 get_end() { return _start_offset + _length; }
 	
 	void split_lines(char* buffer, u32 length);
 	void split_lines_reversed(char* buffer, u32 length);
@@ -43,7 +43,7 @@ private:
 	std::string _name;
 	Readable& _file;
 	u32 _chunk_index;
-	u64 _start;
+	u64 _start_offset;
 
 	u64 _length;
 	std::deque<MetaLine> _lines;

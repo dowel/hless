@@ -21,10 +21,10 @@ Buffer::~Buffer()
 Buffer::iterator& Buffer::iterator::operator++(int) // suffix form
 {
 	_line_index++;
-	if (_line_index >= _chunk->get_size()) {
+	if (_line_index >= _chunk->get_lines_count()) {
 		_chunk->grow_down();
 	}
-	if (_line_index >= _chunk->get_size()) {
+	if (_line_index >= _chunk->get_lines_count()) {
 		Log2("Iterator reached end of buffer...");
 		*this = Buffer::end();
 	}
@@ -42,11 +42,11 @@ Buffer::iterator Buffer::iterator::operator++() // prefix form
 Buffer::iterator& Buffer::iterator::operator--(int) // suffix form
 {
 	if (_line_index == 0) {
-		u64 size = _chunk->get_size();
-		Log3("Reached end of chunk. Old size " << _chunk->get_size());
+		u64 size = _chunk->get_lines_count();
+		Log3("Reached end of chunk. Old size " << _chunk->get_lines_count());
 		_chunk->grow_up();
-		_line_index = _chunk->get_size() - size;
-		Log3("After growing chunk, new index " << _line_index << ", new size " << _chunk->get_size());
+		_line_index = _chunk->get_lines_count() - size;
+		Log3("After growing chunk, new index " << _line_index << ", new size " << _chunk->get_lines_count());
 	}
 
 	if (_line_index == 0) {
@@ -103,7 +103,7 @@ Buffer::iterator Buffer::back()
 		_chunks.push_back(last_chunk);
 	}
 
-	iterator it(last_chunk, last_chunk->get_size() - 1);
+	iterator it(last_chunk, last_chunk->get_lines_count() - 1);
 	Log2("Returning last line in the buffer " << it);
 	return it;
 }
