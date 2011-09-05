@@ -4,15 +4,24 @@
 
 static __attribute__((unused)) const char* MODULE_NAME = "chunk";
 
-Chunk::Chunk(std::string name, Readable& file, u32 chunk_index, u64 start)
+Chunk::Chunk(std::string name, Readable& file, u32 chunk_index, u64 start, Chunk* next, Chunk* prev)
 	: _name(name)
 	, _file(file)
 	, _chunk_index(chunk_index)
 	, _start_offset(start)
 	, _length(0)
-	, _next(0)
-	, _prev(0)
-{ }
+	, _first_line_index(0)
+	, _next(next)
+	, _prev(prev)
+{
+	if (_next) {
+		_next->_prev = this;
+	}
+
+	if (_prev) {
+		_prev->_next = this;
+	}
+}
 
 void Chunk::split_lines(char* buffer, u32 length)
 {
@@ -32,20 +41,25 @@ void Chunk::split_lines(char* buffer, u32 length)
 
 void Chunk::split_lines_reversed(char* buffer, u32 length)
 {
+	u32 buffer_length = length;
 	u32 i = length - 1;
+	u64 old_size = _lines.size();
+	_start_offset -= length;
 	while (i > 0) {
 		i--;
 		if (buffer[i] == '\n') {
-			MetaLine line(_start_offset + _length + i, length - i);
+			MetaLine line(_start_offset + i + 1, buffer_length - i - 1);
 			Log2("Adding line " << line);
 			_lines.push_front(line);
-			length = i;
+			buffer_length = i;
 		}
 	}
 
-	MetaLine line(_start_offset + _length, length);
+	MetaLine line(_start_offset, buffer_length);
 	Log2("Adding line " << line);
 	_lines.push_front(line);
+	_length += length;
+	_first_line_index += _lines.size() - old_size;
 }
 
 void Chunk::grow_up()
@@ -62,15 +76,21 @@ void Chunk::grow_up()
 		return;
 	}
 
+	// We're about to preprend a new buffer to the beginning of the chunk. Calculating how much to add
+	// and where from the beginning of the file the new buffer should begin.
 	u64 start_from;
 	u64 how_much;
 	u64 rel_start;
+
+	// If there's previous chunk, we want to try to start from it's end.
 	if (_prev) {
 		rel_start = _prev->_start_offset + _prev->_length;
 	} else {
 		rel_start = 0;
 	}
 
+	// If distance to relative start smaller than chunk size, we start from relative start. Otherwise, 
+	// we start from current _start_offset - Config::chunk_grow_size.
 	if (_start_offset - rel_start <= Config::chunk_grow_size) {
 		start_from = rel_start;
 		how_much = _start_offset - rel_start;
@@ -79,8 +99,8 @@ void Chunk::grow_up()
 		how_much = Config::chunk_grow_size;
 	}
 
-	Log3("Chunk growing by " << how_much << " starting from " << start_from);
-
+	// So, now when we know where the new buffer starts from, we want to make sure that it is aligned
+	// on the beginning of a line.
 	char buffer[how_much];
 	u32 n = 0;
 	_file.read(how_much, start_from, buffer);
@@ -97,11 +117,12 @@ void Chunk::grow_up()
 		n++;
 	}
 
+	Log3("Chunk growing by " << how_much << " starting from " << start_from);
+
 	start_from += n;
 	how_much -= n;
-	_start_offset = start_from;
 
-	split_lines_reversed(&buffer[n], how_much);
+	split_lines_reversed(buffer + n, how_much);
 	Log2("Chunk after growing: " << this);
 }
 
@@ -109,6 +130,11 @@ void Chunk::grow_down()
 {
 	Log1("Asked to grow chunk " << this << " down");
 	Log2("Chunk before growing: " << this);
+
+	if (_start_offset + _length >= _file.get_size()) {
+		Log1("Chunk reached end of file. Cannot grow anymore...");
+		return;
+	}
 
 	if (_next && _next->_start_offset == _start_offset + _length) {
 		Log2("Chunk end is adjacent to the beginning of next chunk");
@@ -133,9 +159,9 @@ std::ostream& operator<<(std::ostream& os, Chunk& chunk)
 	} else {
 		os << "[Chunk: " << chunk._name << ", ";
 	}
-	os << chunk._start_offset << "-";
+	os << "size " << chunk._start_offset << "-";
 	os << chunk._start_offset + chunk._length << "(+" << chunk._length << "), ";
-	os << chunk._lines.size();
+	os << "lines " << chunk._lines.size() << ", first " << chunk._first_line_index;
 	os << "]";
 	return os;
 }

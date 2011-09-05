@@ -77,7 +77,7 @@ public:
 
 	private:
 		Chunk* _chunk;
-		u64 _line_index;
+		s64 _line_index;
 	};
 
 	typedef std::deque<Chunk*> ChunkList;

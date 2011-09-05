@@ -48,8 +48,8 @@ void Brush::Color::setoff()
 
 void Brush::draw_text(u32 x, u32 y, Line& line, Color* color)
 {
-	Log1("Asked to draw text at " << x << "/" << y << " with " << color);
-	Log2("The text is: " << line.get_text(64) << "...");
+	Log2("Drawing text at " << x << "/" << y << " with " << color);
+	Log3("The text is: " << line.get_text(64) << "...");
 	color->seton();
 	mvaddstr(y, x, line.get_text());
 	color->setoff();

@@ -21,10 +21,10 @@ Buffer::~Buffer()
 Buffer::iterator& Buffer::iterator::operator++(int) // suffix form
 {
 	_line_index++;
-	if (_line_index >= _chunk->get_lines_count()) {
+	if (_chunk->get_absolute_line_index(_line_index) >= _chunk->get_lines_count()) {
 		_chunk->grow_down();
 	}
-	if (_line_index >= _chunk->get_lines_count()) {
+	if (_chunk->get_absolute_line_index(_line_index) >= _chunk->get_lines_count()) {
 		Log2("Iterator reached end of buffer...");
 		*this = Buffer::end();
 	}
@@ -41,15 +41,11 @@ Buffer::iterator Buffer::iterator::operator++() // prefix form
 
 Buffer::iterator& Buffer::iterator::operator--(int) // suffix form
 {
-	if (_line_index == 0) {
-		u64 size = _chunk->get_lines_count();
-		Log3("Reached end of chunk. Old size " << _chunk->get_lines_count());
+	if (_chunk->get_absolute_line_index(_line_index) == 0) {
 		_chunk->grow_up();
-		_line_index = _chunk->get_lines_count() - size;
-		Log3("After growing chunk, new index " << _line_index << ", new size " << _chunk->get_lines_count());
 	}
 
-	if (_line_index == 0) {
+	if (_chunk->get_absolute_line_index(_line_index) == 0) {
 		Log2("Iterator reached beginning of buffer...");
 		*this = Buffer::end();
 		return *this;
@@ -83,11 +79,11 @@ void Buffer::read_line(iterator& it, Line& line)
 Buffer::iterator Buffer::begin()
 {
 	if (_chunks.size() == 0) {
-		Chunk* chunk = new Chunk(std::string(""), _file, 0, 0);
+		Chunk* chunk = new Chunk(std::string(""), _file, 0, 0, 0, 0);
 		chunk->grow_down();
 		_chunks.push_back(chunk);
 	}
-	iterator it(_chunks[0], 0);
+	iterator it(_chunks[0], _chunks[0]->get_first_line_index());
 	return it;
 }
 
@@ -98,12 +94,12 @@ Buffer::iterator Buffer::back()
 	if (_file.get_size() - last_chunk->get_end() < Config::chunk_grow_size) {
 		last_chunk->grow_down();
 	} else {
-		last_chunk = new Chunk("100%", _file, _chunks.size(), _file.get_size());
+		last_chunk = new Chunk("100%", _file, _chunks.size(), _file.get_size(), 0, _chunks.back());
 		last_chunk->grow_up();
 		_chunks.push_back(last_chunk);
 	}
 
-	iterator it(last_chunk, last_chunk->get_lines_count() - 1);
+	iterator it(last_chunk, last_chunk->get_last_line_index());
 	Log2("Returning last line in the buffer " << it);
 	return it;
 }
@@ -112,7 +108,7 @@ std::ostream& operator<<(std::ostream& os, Buffer::iterator& it)
 {
 	os << "[Iterator: " << *it;
 	if (it._chunk != 0) {
-		os << " in " << it._chunk;
+		os << " in " << it._chunk << ", index " << it._line_index;
 	}
 	os << "]";
 	return os;

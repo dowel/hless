@@ -52,10 +52,10 @@ void Screen::redraw_screen(Buffer::iterator& in_current,
 
 	erase();
 
-	Log1("Asked to redraw screen starting from " << current);
+	Log1("Redrawing screen from " << current);
 	Log1("Cursor is " << cursor);
 	while ((n < _text_height) && (current != Buffer::end())) {
-		Log3("Considering line " << current << " for drawing");
+		Log3("Drawing " << current << ". Done " << n << " out of " << _text_height);
 
 		LineList lst;
 		LineList::iterator it;
@@ -89,7 +89,7 @@ void Screen::stage_redraw_screen(Buffer::iterator& in_current,
 	u32 n = 0, i;
 	Buffer::iterator current = in_current;
 
-	Log1("Asked to stage redraw screen starting from " << current);
+	Log1("Staing redraw from " << current);
 	while ((n < _text_height) && (current != Buffer::end())) {
 		LineList lst;
 		LineList::iterator it;
@@ -113,32 +113,29 @@ void Screen::stage_reversed_redraw_screen(Buffer::iterator& bottom,
 	Buffer::iterator& current, 
 	u32& line_in_current)
 {
-	Log1("Asked to stage reversed redraw screen starting from " << bottom << "/" << line_in_bottom);
+	Log1("Staging reversed redraw from " << bottom << "@" << line_in_bottom);
 
-	Buffer::iterator it = bottom;
-	u32 temp = line_in_bottom;
 	u32 i = _text_height;
+	Buffer::iterator it = bottom;
+	u32 lines_in = line_in_bottom + 1;
+	u32 prev_lines_in = 0;
 	LineList lst;
-	while ((i > 0) && (it != Buffer::end())) {
+	while (i > 0) {
+		i -= lines_in;
+		current = it;
+		it--;
+		if (it == Buffer::end()) {
+			break;
+		}
 		lst.clear();
 		read_and_split(it, lst);
-		u32 size = lst.size(); // somehow std::min doesn't like to compare lst.size() and u32...
-		Log2("Considering line " << it << ". Lines inside " << size << ", lines left " << i);
-		i -= std::min(temp, size); // decrease by either line_in_bottom or lst.size()
-		temp = 0xffffffff;
-		it--;
-		Log1("bottom " << bottom << ", it " << it);
+		Log2("Considering line " << it << ". Lines " << lst.size() << ", left " << i);
+		prev_lines_in = lines_in;
+		lines_in = lst.size();
 	}
+	line_in_current = prev_lines_in + i - 1;
 
-	if (it == Buffer::end()) {
-		current = _buffer.begin();
-		line_in_current = 0;
-	} else {
-		current = it;
-		line_in_current = lst.size() + i;
-	}
-
-	Log1("After staged redrawing, bottom " << bottom << "/" << line_in_bottom << ", current " << current << 
-		 "/" << line_in_current);
+	Log1("After staged redrawing, bottom " << bottom << "@" << line_in_bottom << ", current " << current << 
+		 "@" << line_in_current);
 }
 
