@@ -28,7 +28,7 @@ int main(int argc, char* argv[])
 	Logging::SetMinLevel("main", Logging::LOG_LEVEL1);
 	Logging::SetMinLevel("hless", Logging::LOG_LEVEL1);
 	Logging::SetMinLevel("screen", Logging::LOG_LEVEL1);
-	Logging::SetMinLevel("buffer", Logging::LOG_LEVEL1);
+	Logging::SetMinLevel("buffer", Logging::LOG_LEVEL3);
 	Logging::SetMinLevel("file", Logging::LOG_LEVEL1);
 	Logging::SetMinLevel("cache", Logging::LOG_LEVEL1);
 	Logging::SetMinLevel("plain", Logging::LOG_LEVEL1);

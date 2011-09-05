@@ -22,7 +22,15 @@ Buffer::iterator& Buffer::iterator::operator++(int) // suffix form
 {
 	_line_index++;
 	if (_chunk->get_absolute_line_index(_line_index) >= _chunk->get_lines_count()) {
-		_chunk->grow_down();
+		// Checking if there's by a small chance next chunk and we're bumbing into it's boundary.
+		// If so, we want to move to next chunk...
+		Chunk* next = _chunk->get_next();
+		if (next && _chunk->get_end() == next->get_start_offset()) {
+			_line_index = next->get_first_line_index();
+			_chunk = next;
+		} else {
+			_chunk->grow_down();
+		}
 	}
 	if (_chunk->get_absolute_line_index(_line_index) >= _chunk->get_lines_count()) {
 		Log2("Iterator reached end of buffer...");
@@ -42,7 +50,16 @@ Buffer::iterator Buffer::iterator::operator++() // prefix form
 Buffer::iterator& Buffer::iterator::operator--(int) // suffix form
 {
 	if (_chunk->get_absolute_line_index(_line_index) == 0) {
-		_chunk->grow_up();
+		// Checking if there's by a small chance previous chunk and we're bumbing into it's boundary.
+		// If so, we want to move to previous chunk...
+		Chunk* prev = _chunk->get_prev();
+		if ((prev != 0) && (prev->get_end() == _chunk->get_start_offset())) {
+			_line_index = prev->get_last_line_index();
+			_chunk = prev;
+			return *this;
+		} else {
+			_chunk->grow_up();
+		}
 	}
 
 	if (_chunk->get_absolute_line_index(_line_index) == 0) {
