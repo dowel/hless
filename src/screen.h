@@ -64,7 +64,17 @@ public:
 	 */
 	void read_and_split(Buffer::iterator& it, LineList& res);
 
+	/**
+	 * Returns width of the screen.
+	 * 
+	 * @return u32 
+	 */
 	u32 get_width() { return _width; }
+
+	/**
+	 * Redraws status bar.
+	 */
+	void update_status_bar();
 
 private:
 	u32 _maxx;
@@ -73,6 +83,7 @@ private:
 	u32 _text_height;
 	Brush _brush;
 	Buffer& _buffer;
+	StatusBar _status_bar;
 };
 
 #endif

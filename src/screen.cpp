@@ -79,6 +79,8 @@ void Screen::redraw_screen(Buffer::iterator& in_current,
 		bottom = current;
 		current++;
 	}
+
+	update_status_bar();
 }
 
 void Screen::stage_redraw_screen(Buffer::iterator& in_current,

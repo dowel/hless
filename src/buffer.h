@@ -82,6 +82,12 @@ public:
 
 	typedef std::deque<Chunk*> ChunkList;
 
+	/**
+	 * Reads specified by iterator line into Line object.
+	 * 
+	 * @param it 
+	 * @param line 
+	 */
 	void read_line(iterator& it, Line& line);
 
 	/** 
