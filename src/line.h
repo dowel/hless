@@ -5,6 +5,7 @@
 #include <string>
 #include <list>
 #include <boost/shared_ptr.hpp>
+#include <boost/shared_array.hpp>
 
 #include "log.h"
 #include "types.h"
@@ -13,6 +14,8 @@
  * Class below represents actual data in the file. Each instance contains single line of text in 
  * original file. Also, this class encapsulates basic operations on lines of text, such as splitting 
  * line into multiple lines, stripping the line and matching it against regular expressions. 
+ *  
+ * It could have been lovely if we could inherit from std::string, but we can't.  
  */
 class Line;
 typedef std::list<boost::shared_ptr<Line> > LineList;
@@ -20,39 +23,41 @@ typedef std::list<boost::shared_ptr<Line> > LineList;
 class Line
 {
 public:
-	Line() : _length(0), _original_length(0), _string(0), _original_string(0), _temp_buffer(0) { }
+	Line() : _length(0) { }
+	Line(char* str);
 	Line(char* str, u32 length);
+	Line(std::string str);
 	Line(Line& other);
+	Line(char c, u32 how_many);
 	~Line();
 
-	void init(char* ptr, u32 length);
+	void init(const char* ptr, u32 length);
 	void init_copyless(char* ptr, u32 length);
-
-	void reset();
 
 	void strip_back();
 
-	char* get_text()
+	const char* get()
 	{
-		return _string;
+		return _string.get();
 	}
 
-	char* get_text(u32 max_length);
+	const char* get(u32 max_length);
+	u32 length() { return _length; }
+
 	void split_lines(u32 length, LineList& lst);
+
+	char& operator[](const u32& index);
+	Line& operator+=(const Line& other);
 
 	friend class Buffer;
 	friend std::ostream& operator<<(std::ostream& os, Line& line);
 
 private:
-	/**
-	 * Note that the _length here does not include the terminating \0 character. Actually, the string is
-	 * one byte longer than _length. 
-	 */
 	u32 _length;
-	u32 _original_length;
-	char* _string;
-	char* _original_string;
-	char* _temp_buffer;
+	boost::shared_array<char> _string;
+	boost::shared_array<char> _temp_buffer;
+
+	static const u32 min_buffer_to_allocate = 256;
 };
 
 std::ostream& operator<<(std::ostream& os, Line& line);

@@ -33,9 +33,10 @@ int main(int argc, char* argv[])
 	Logging::SetMinLevel("cache", Logging::LOG_LEVEL1);
 	Logging::SetMinLevel("plain", Logging::LOG_LEVEL1);
 	Logging::SetMinLevel("input", Logging::LOG_LEVEL1);
-	Logging::SetMinLevel("brush", Logging::LOG_LEVEL1);
+	Logging::SetMinLevel("brush", Logging::LOG_LEVEL3);
 	Logging::SetMinLevel("line", Logging::LOG_LEVEL_WARN);
 	Logging::SetMinLevel("chunk", Logging::LOG_LEVEL1);
+	Logging::SetMinLevel("status", Logging::LOG_LEVEL1);
 
 	Log1("Hello and welcome to hless log file!!!");
 
@@ -46,8 +47,7 @@ int main(int argc, char* argv[])
 
 		file.open(argv[1]);
 
-		Screen screen(buffer);
-		Hless hless(screen, buffer);
+		Hless hless(buffer);
 
 		hless.run();
 

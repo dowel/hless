@@ -8,9 +8,10 @@
 
 static __attribute__((unused)) const char* MODULE_NAME = "hless";
 
-Hless::Hless(Screen& screen, Buffer& buffer)
-	: _screen(screen)
-	, _buffer(buffer)
+Hless::Hless(Buffer& buffer)
+	: _buffer(buffer)
+	, _screen(buffer)
+	, _status_bar()
 	, _line_in_current(0)
 	, _line_in_bottom(0)
 	, _done(false)
@@ -44,12 +45,14 @@ void Hless::run()
 
 	while (!_done) {
 		Log1("===================================================================================================");
-		_screen.redraw_screen(_current, _line_in_current, _cursor, _bottom, _line_in_bottom);
+		_screen.redraw(_current, _line_in_current, _cursor, _bottom, _line_in_bottom);
 
 		Log1("After redrawing screen:");
 		Log1("Cursor at " << _cursor);
 		Log1("Current at " << _current << ", line in current " << _line_in_current);
 		Log1("Bottom at " << _bottom << ", line in bottom " << _line_in_bottom);
+
+		_status_bar.redraw(_cursor);
 
 		Log1("---------------------------------------------------------------------------------------------------");
 		_input.wait_for_input();
@@ -175,7 +178,7 @@ void Hless::on_next_page()
 	Buffer::iterator new_bottom;
 	u32 line_in_new_bottom;
 
-	_screen.stage_redraw_screen(_current, _line_in_current, new_bottom, line_in_new_bottom);
+	_screen.stage_redraw(_current, _line_in_current, new_bottom, line_in_new_bottom);
 	Log1("New bottom expected to be at " << new_bottom << "@" << line_in_new_bottom);
 
 	if (new_bottom == _current) {
@@ -207,7 +210,7 @@ void Hless::on_prev_page()
 	Buffer::iterator old_current = _current;
 	_bottom = _current;
 	_line_in_bottom = 0;
-	_screen.stage_reversed_redraw_screen(_bottom, _line_in_bottom, _current, _line_in_current);
+	_screen.stage_reversed_redraw(_bottom, _line_in_bottom, _current, _line_in_current);
 	Log1("New current expected to be at " << _current << "@" << _line_in_current);
 
 	// Now moving the cursor...
@@ -222,7 +225,7 @@ void Hless::on_goto_end()
 	_screen.read_and_split(_bottom, lst);
 	_line_in_bottom = lst.size() - 1;
 
-	_screen.stage_reversed_redraw_screen(_bottom, _line_in_bottom, _current, _line_in_current);
+	_screen.stage_reversed_redraw(_bottom, _line_in_bottom, _current, _line_in_current);
 	_cursor = _bottom;
 }
 

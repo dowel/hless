@@ -5,8 +5,6 @@
 
 static __attribute__((unused)) const char* MODULE_NAME = "screen";
 
-const int Screen::status_bar_height = 2;
-
 Screen::Screen(Buffer& buffer)
 	: _buffer(buffer)
 {
@@ -15,16 +13,11 @@ Screen::Screen(Buffer& buffer)
 	use_default_colors();
 	_brush.init_colors();
 
-	_maxx = stdscr->_maxx;
-	_maxy = stdscr->_maxy;
-	_width = _maxx + 1;
-	_text_height = _maxy + 1 - status_bar_height;
+	update_terminal_size();
 
 	cbreak();
 	keypad(stdscr, TRUE);
 	noecho();
-
-	Log1("Screen initialized with " << _maxx << "x" << _maxy << " window size");
 }
 
 Screen::~Screen()
@@ -41,12 +34,14 @@ void Screen::read_and_split(Buffer::iterator& it, LineList& res)
 	line.split_lines(_width, res);	
 }
 
-void Screen::redraw_screen(Buffer::iterator& in_current, 
+void Screen::redraw(Buffer::iterator& in_current, 
 	u32 line_in_current,
 	Buffer::iterator& cursor,
 	Buffer::iterator& bottom,
 	u32& line_in_bottom)
 {
+	update_terminal_size();
+
 	u32 n = 0, i;
 	Buffer::iterator current = in_current;
 
@@ -79,15 +74,15 @@ void Screen::redraw_screen(Buffer::iterator& in_current,
 		bottom = current;
 		current++;
 	}
-
-	update_status_bar();
 }
 
-void Screen::stage_redraw_screen(Buffer::iterator& in_current,
+void Screen::stage_redraw(Buffer::iterator& in_current,
 	u32 line_in_current,
 	Buffer::iterator& bottom,
 	u32& line_in_bottom)
 {
+	update_terminal_size();
+
 	u32 n = 0, i;
 	Buffer::iterator current = in_current;
 
@@ -110,12 +105,14 @@ void Screen::stage_redraw_screen(Buffer::iterator& in_current,
 	}
 }
 
-void Screen::stage_reversed_redraw_screen(Buffer::iterator& bottom, 
+void Screen::stage_reversed_redraw(Buffer::iterator& bottom, 
 	u32 line_in_bottom, 
 	Buffer::iterator& current, 
 	u32& line_in_current)
 {
 	Log1("Staging reversed redraw from " << bottom << "@" << line_in_bottom);
+
+	update_terminal_size();
 
 	u32 i = _text_height;
 	Buffer::iterator it = bottom;

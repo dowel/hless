@@ -3,7 +3,10 @@
 
 #include <string>
 #include <fstream>
+#include <sstream>
 #include <map>
+
+#define STR(s) (StringStream() << s).str()
 
 #define Log(level, s) \
 	if (LogLevel(level) >= Logging::GetMinLevel(MODULE_NAME)) { \
@@ -65,7 +68,7 @@ private:
 	static MinLevelsMap _min_levels;
 };
 
-class LogStream : public std::ostream
+class LogStream : public std::fstream
 {
 public:
 	LogStream(std::string logfile);
@@ -75,7 +78,25 @@ public:
 		const char* module, int level);
 
 private:
-	std::ofstream _os;
+	std::fstream _os;
+};
+
+class StringStream
+{
+public:
+	template <class T> StringStream& operator<<(const T& obj)
+	{
+		_ss << obj;
+		return *this;
+	}
+
+	std::string str()
+	{
+		return _ss.str();
+	}
+
+private:
+	std::stringstream _ss;
 };
 
 class LogLevel

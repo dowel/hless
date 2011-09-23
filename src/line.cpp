@@ -1,57 +1,57 @@
 #include "log.h"
 #include "line.h"
+#include "error.h"
 
 #include <cstring>
 
 static __attribute__((unused)) const char* MODULE_NAME = "line";
 
+Line::Line(char* str)
+{
+	init(str, strlen(str));
+}
+
 Line::Line(char* str, u32 length)
-	: _temp_buffer(0)
 {
 	init(str, length);
 }
 
-Line::Line(Line& other)
-	: _temp_buffer(0)
+Line::Line(std::string str)
 {
-	init(other._string, other._length);
+	init(str.c_str(), str.length());
+}
+
+Line::Line(Line& other)
+{
+	init(other._string.get(), other._length);
+}
+
+Line::Line(char c, u32 how_many)
+{
+	char* s = new char[how_many + 1];
+	memset(s, c, how_many);
+	s[how_many] = 0;
+	init_copyless(s, how_many);
 }
 
 Line::~Line()
 {
-	reset();
 }
 
-void Line::init(char* str, u32 length)
+void Line::init(const char* str, u32 length)
 {
-	_length = length;
-	_original_length = length;
-	_string = new char[_length + 1];
-	Log3("Allocated pointer " << std::hex << reinterpret_cast<void*>(_string) << std::dec);
-	_original_string = _string;
-	memcpy(_string, str , _length);
-	_string[_length] = 0;
+	_length = length + 1;
+	_string.reset(new char[_length]);
+	memcpy(_string.get(), str , _length);
+	_string[_length - 1] = 0;
 }
 
 void Line::init_copyless(char* str, u32 length)
 {
+	// This is a little ugly trick. We didn't allocate the memory here, but since we're given this
+	// memory buffer and this is the only module that tracks memory, we print a notification from here.
 	_length = length;
-	_original_length = length;
-	_string = str;
-	_original_string = str;
-}
-
-void Line::reset()
-{
-	if (_original_string) {
-		Log3("Deleting pointer " << std::hex << reinterpret_cast<void*>(_original_string) << std::dec);
-		delete _original_string;
-	}
-
-	if (_temp_buffer) {
-		Log3("Deleting pointer " << std::hex << reinterpret_cast<void*>(_temp_buffer) << std::dec);
-		delete _temp_buffer;
-	}
+	_string.reset(str);
 }
 
 void Line::strip_back()
@@ -67,19 +67,13 @@ void Line::strip_back()
 	Log2("Line after stripping: " << this);
 }
 
-char* Line::get_text(u32 max_length)
+const char* Line::get(u32 max_length)
 {
-	if (_temp_buffer) {
-		Log3("Deleting pointer " << std::hex << reinterpret_cast<void*>(_temp_buffer) << std::dec);
-		delete _temp_buffer;
-	}
-
-	_temp_buffer = new char[max_length + 1];
-	Log3("Allocated pointer " << std::hex << reinterpret_cast<void*>(_temp_buffer) << std::dec);
+	_temp_buffer.reset(new char[max_length + 1]);
 	u32 len = max_length > _length ? _length : max_length;
-	memcpy(_temp_buffer, _string, len);
+	memcpy(_temp_buffer.get(), _string.get(), len);
 	_temp_buffer[max_length] = 0;
-	return _temp_buffer;
+	return _temp_buffer.get();
 }
 
 void Line::split_lines(u32 length, LineList& lst)
@@ -94,24 +88,43 @@ void Line::split_lines(u32 length, LineList& lst)
 			buffer[length] = 0;
 			Log2("Copying " << _length - cnt << " bytes into temporary buffer");
 			Log2("Writing spaces from " << _length - cnt << " for " << length - (_length - cnt) << " bytes");
-			memcpy(buffer, _string + cnt, _length - cnt);
+			memcpy(buffer, _string.get() + cnt, _length - cnt);
 			memset(buffer + _length - cnt, ' ', length - (_length - cnt));
 			temp = buffer;
 		} else {
-			temp = get_text() + cnt;
+			temp = _string.get() + cnt;
 		}
 		lst.push_back(boost::shared_ptr<Line>(new Line(temp, length)));
 		cnt += length;
 	}
 }
 
+char& Line::operator[](const u32& index)
+{
+	if (index >= _length) {
+		throw Exception(STR("Attempt to access beyond end of line. Line '" << get(64) << "', index " << index));
+	}
+	return _string[index];
+}
+
+Line& Line::operator+=(const Line& b)
+{
+	boost::shared_array<char> temp = _string;
+	_string.reset(new char[_length + b._length - 1]);
+	memcpy(_string.get(), temp.get(), _length - 1);
+	memcpy(_string.get() + _length - 1, b._string.get(), b._length);
+	_length = _length + b._length - 1;
+	_string[_length - 1] = 0;
+	return *this;
+}
+
 std::ostream& operator<<(std::ostream& os, Line& line)
 {
 	const u32 buffer_length = 64;
 	char buffer[buffer_length + 1];
-	if (line._string != 0) {
+	if (line._string.get() != 0) {
 		u32 len = line._length > buffer_length ? buffer_length : line._length;
-		memcpy(buffer, line._string, len);
+		memcpy(buffer, line._string.get(), len);
 		buffer[len] = 0;
 	}
 	os << "[Line: " << buffer << "... (" << line._length << " bytes)]";

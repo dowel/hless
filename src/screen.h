@@ -1,16 +1,16 @@
 #ifndef __SCREEN_H__
 #define __SCREEN_H__
 
+#include "size_aware.h"
 #include "buffer.h"
 #include "brush.h"
+#include "status_bar.h"
 
-class Screen
+class Screen : public SizeAware
 {
 public:
 	Screen(Buffer& buffer);
 	~Screen();
-
-	static const int status_bar_height;
 
 	/**
 	 * Redraws screen returning new bottom and line in it. 
@@ -21,7 +21,7 @@ public:
 	 * @param bottom 
 	 * @param line_in_bottom 
 	 */
-	void redraw_screen(Buffer::iterator& current, 
+	void redraw(Buffer::iterator& current, 
 		u32 line_in_current,
 		Buffer::iterator& cursor,
 		Buffer::iterator& bottom,
@@ -36,7 +36,7 @@ public:
 	 * @param bottom 
 	 * @param line_in_bottom 
 	 */
-	void stage_redraw_screen(Buffer::iterator& current,
+	void stage_redraw(Buffer::iterator& current,
 		u32 line_in_current,
 		Buffer::iterator& bottom,
 		u32& line_in_bottom);
@@ -51,7 +51,7 @@ public:
 	 * @param current 
 	 * @param line_in_current 
 	 */
-	void stage_reversed_redraw_screen(Buffer::iterator& bottom, 
+	void stage_reversed_redraw(Buffer::iterator& bottom, 
 		u32 line_in_bottom, 
 		Buffer::iterator& current, 
 		u32& line_in_current);
@@ -71,19 +71,9 @@ public:
 	 */
 	u32 get_width() { return _width; }
 
-	/**
-	 * Redraws status bar.
-	 */
-	void update_status_bar();
-
 private:
-	u32 _maxx;
-	u32 _maxy;
-	u32 _width;
-	u32 _text_height;
 	Brush _brush;
 	Buffer& _buffer;
-	StatusBar _status_bar;
 };
 
 #endif

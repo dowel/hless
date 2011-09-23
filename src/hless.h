@@ -8,7 +8,7 @@
 class Hless
 {
 public:
-	Hless(Screen& screen, Buffer& buffer);
+	Hless(Buffer& buffer);
 	~Hless();
 
 	/**
@@ -38,8 +38,10 @@ public:
 	void on_goto_end();
 
 private:
-	Screen& _screen;
 	Buffer& _buffer;
+
+	Screen _screen;
+	StatusBar _status_bar;
 
 	InputProcessor _input;
     Buffer::iterator _current;

@@ -65,6 +65,23 @@ public:
 			return &operator*();
 		}
 
+		std::string string_name()
+		{
+			std::ostringstream ss;
+			std::string chunk_name = _chunk->get_name();
+			if (chunk_name != "") {
+				ss << chunk_name;
+			}
+
+			if ((chunk_name != "") && (_line_index > 0)) {
+				ss << "+";
+			}
+
+			ss << _line_index;
+
+			return std::string(ss.str());
+		}
+
 		iterator& operator++(int); // suffix form
 		iterator operator++(); // prefix form
 

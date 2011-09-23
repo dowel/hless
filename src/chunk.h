@@ -42,6 +42,10 @@ public:
 	s64 get_first_line_index() { return -_first_line_index; }
 	s64 get_last_line_index() { return _lines.size() - _first_line_index - 1; }
 
+	Readable& get_file() { return _file; }
+
+	std::string get_name() { return _name; }
+
 	friend std::ostream& operator<<(std::ostream& os, Chunk& chunk);
 	friend std::ostream& operator<<(std::ostream& os, Chunk* chunk);
 

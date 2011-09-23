@@ -2,18 +2,20 @@
 #define __STATUS_BAR_H__
 
 #include "types.h"
+#include "size_aware.h"
+#include "brush.h"
+#include "buffer.h"
 
-class StatusBar
+class StatusBar : public SizeAware
 {
 public:
 	StatusBar();
 	~StatusBar();
 
-	void update_screen_size(u32 width, u32 height);
+	void redraw(Buffer::iterator& cursor);
 
 private:
-	u32 _width; // of entire screen...
-	u32 _height; // of entire screen...
+	Brush _brush;
 };
 
 #endif

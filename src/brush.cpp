@@ -5,6 +5,7 @@ static __attribute__((unused)) const char* MODULE_NAME = "brush";
 
 Brush::Color* Brush::text_color = 0;
 Brush::Color* Brush::cursor_color = 0;
+Brush::Color* Brush::status_bar_color = 0;
 
 u32 Brush::Color::_last_pair = 1;
 
@@ -12,6 +13,7 @@ void Brush::init_colors()
 {
 	Brush::text_color = new Brush::Color("text color");
 	Brush::cursor_color = new Brush::Color("cursor color", Brush::Color::BLACK, Brush::Color::YELLOW);
+	Brush::status_bar_color = new Brush::Color("status bar color", Brush::Color::BLACK, Brush::Color::WHITE);
 }
 
 Brush::Color::Color(std::string name)
@@ -49,9 +51,9 @@ void Brush::Color::setoff()
 void Brush::draw_text(u32 x, u32 y, Line& line, Color* color)
 {
 	Log2("Drawing text at " << x << "/" << y << " with " << color);
-	Log3("The text is: " << line.get_text(64) << "...");
+	Log3("The text is: " << line.get(64) << "...");
 	color->seton();
-	mvaddstr(y, x, line.get_text());
+	mvaddstr(y, x, line.get());
 	color->setoff();
 }
 

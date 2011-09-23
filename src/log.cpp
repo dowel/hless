@@ -1,5 +1,6 @@
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <time.h>
+#include <fstream>
 
 #include "log.h"
 
@@ -46,7 +47,7 @@ LogLevel Logging::GetMinLevel(const char* module)
 
 LogStream::LogStream(std::string logfile)
 {
-	_os.open(logfile.c_str());
+	_os.open(logfile.c_str(), std::fstream::out | std::fstream::trunc);
 }
 
 LogStream::~LogStream()

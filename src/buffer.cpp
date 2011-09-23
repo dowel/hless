@@ -82,15 +82,11 @@ Buffer::iterator Buffer::iterator::operator--() // prefix form
 
 void Buffer::read_line(iterator& it, Line& line)
 {
-	line.reset();
-	line._length = it->get_length();
-	line._string = new char[line._length + 1];
-	Log4("Allocated pointer " << std::hex << reinterpret_cast<void*>(line._string) << std::dec);
-	_file.read(line._length, it->get_offset(), line._string);
-	line._string[line._length] = 0;
-
-	line._original_string = line._string;
-	line._original_length = line._length;
+	u32 size = it->get_length() + 1;
+	char* temp = new char[size];
+	_file.read(size, it->get_offset(), temp);
+	line.init_copyless(temp, it->get_length() + 1);
+	line[line.length() - 1] = 0;
 }
 
 Buffer::iterator Buffer::begin()
