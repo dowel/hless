@@ -3,6 +3,7 @@
 
 #include "hless.h"
 #include "log.h"
+#include "editbox.h"
 
 #define KEY_HANDLER(x) boost::function<void ()>(boost::bind(&x, this))
 
@@ -39,6 +40,8 @@ void Hless::run()
 	_input.register_input_sequence(tmp, KEY_HANDLER(Hless::on_prev_page));
 	tmp = boost::assign::list_of('G');
 	_input.register_input_sequence(tmp, KEY_HANDLER(Hless::on_goto_end));
+	tmp = boost::assign::list_of(':');
+	_input.register_input_sequence(tmp, KEY_HANDLER(Hless::on_goto));
 
 	_current = _buffer.begin();
 	_cursor = _current;
@@ -227,5 +230,11 @@ void Hless::on_goto_end()
 
 	_screen.stage_reversed_redraw(_bottom, _line_in_bottom, _current, _line_in_current);
 	_cursor = _bottom;
+}
+
+void Hless::on_goto()
+{
+	Editbox ed("hello world");
+	ed.run();
 }
 

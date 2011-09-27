@@ -1,6 +1,6 @@
 TARGET = hless
 SRC =  main hless file buffer log screen plain_file cache input brush line error
-SRC += meta_line chunk status_bar
+SRC += meta_line chunk status_bar editbox
 
 O = obj
 S = src

@@ -36,6 +36,7 @@ public:
 	void on_next_page();
 	void on_prev_page();
 	void on_goto_end();
+	void on_goto();
 
 private:
 	Buffer& _buffer;
