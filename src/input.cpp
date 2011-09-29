@@ -44,12 +44,13 @@ void InputProcessor::wait_for_input()
 	InputTreeNode* temp;
 	while (true) {
 		ch = getch();
+		Log1("Received input character " << ch);
 		seq.push_back(ch);
 		temp = node->get_node(ch);
 		if (temp) {
 			Log1("Calling handler for sequence: " << seq);
 			if (temp->get_handler()) {
-				(*temp)();
+				(*temp)(ch);
 				return;
 			}
 			node = temp;
@@ -87,10 +88,10 @@ InputProcessor::InputTreeNode* InputProcessor::InputTreeNode::get_node(int key)
 	return 0;
 }
 
-void InputProcessor::InputTreeNode::operator()()
+void InputProcessor::InputTreeNode::operator()(char c)
 {
 	if (_handler != 0) {
-		_handler();
+		_handler(c);
 	}
 }
 
@@ -227,8 +228,8 @@ std::ostream& operator<<(std::ostream& os, InputProcessor::InputSequence& seq)
 	{
 		if (!first) {
 			os << ", ";
-			first = false;
 		}
+		first = false;
 		os << InputProcessor::key_name(*it);
 	}
 

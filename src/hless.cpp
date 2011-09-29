@@ -5,8 +5,6 @@
 #include "log.h"
 #include "editbox.h"
 
-#define KEY_HANDLER(x) boost::function<void ()>(boost::bind(&x, this))
-
 static __attribute__((unused)) const char* MODULE_NAME = "hless";
 
 Hless::Hless(Buffer& buffer)
@@ -90,12 +88,12 @@ Buffer::iterator Hless::closest_line(u64 offset, Buffer::iterator& before_hint, 
 	}
 }
 
-void Hless::on_quit_key()
+void Hless::on_quit_key(char c)
 {
 	_done = true;
 }
 
-void Hless::on_down_key()
+void Hless::on_down_key(char c)
 {
 	// This the simplest case - cursor is not at the bottom line. Moving cursor
 	// one line down and returning.
@@ -137,7 +135,7 @@ void Hless::on_down_key()
 	}
 }
 
-void Hless::on_up_key()
+void Hless::on_up_key(char c)
 {
 	if (_cursor == _current) {
 		Log2("Cursor is at the top of the screen...");
@@ -169,7 +167,7 @@ void Hless::on_up_key()
 	}
 }
 
-void Hless::on_next_page()
+void Hless::on_next_page(char c)
 {
 	Buffer::iterator old_current = _current;
 
@@ -200,7 +198,7 @@ void Hless::on_next_page()
 	}
 }
 
-void Hless::on_prev_page()
+void Hless::on_prev_page(char c)
 {
 	// Let's say we're already at the beginning of the file. Moving cursor to the top and bailing out.
 	if (_current == _buffer.begin()) {
@@ -221,7 +219,7 @@ void Hless::on_prev_page()
 	_cursor = closest_line(_cursor->get_offset() - offset, _current, _bottom);
 }
 
-void Hless::on_goto_end()
+void Hless::on_goto_end(char c)
 {
 	_bottom = _buffer.back();
 	LineList lst;
@@ -232,7 +230,7 @@ void Hless::on_goto_end()
 	_cursor = _bottom;
 }
 
-void Hless::on_goto()
+void Hless::on_goto(char c)
 {
 	Editbox ed("hello world");
 	ed.run();

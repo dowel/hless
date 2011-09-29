@@ -30,13 +30,13 @@ public:
 	/**
 	 * These are various key handlers.
 	 */
-	void on_quit_key();
-	void on_down_key();
-	void on_up_key();
-	void on_next_page();
-	void on_prev_page();
-	void on_goto_end();
-	void on_goto();
+	void on_quit_key(char c);
+	void on_down_key(char c);
+	void on_up_key(char c);
+	void on_next_page(char c);
+	void on_prev_page(char c);
+	void on_goto_end(char c);
+	void on_goto(char c);
 
 private:
 	Buffer& _buffer;

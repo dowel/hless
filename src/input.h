@@ -2,8 +2,11 @@
 #define __INPUT_H__
 
 #include <boost/function.hpp>
+#include <boost/bind.hpp>
 #include <list>
 #include <map>
+
+#define KEY_HANDLER(x) boost::function<void (char)>(boost::bind(&x, this, _1))
 
 class InputProcessor
 {
@@ -11,7 +14,7 @@ public:
 	InputProcessor();
 	~InputProcessor();
 
-	typedef boost::function<void ()> InputHandler;
+	typedef boost::function<void (char)> InputHandler;
 	typedef std::list<int> InputSequence;
 
 	class InputTreeNode
@@ -31,7 +34,7 @@ public:
 		{
 			return _handler;
 		}
-		void operator()();
+		void operator()(char c);
 
 		typedef std::map<int, InputTreeNode*> InputTreeNodeKeys;
 
