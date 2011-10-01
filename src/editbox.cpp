@@ -6,10 +6,27 @@
 static __attribute__((unused)) const char* MODULE_NAME = "editbox"; 
 
 Editbox::Editbox(std::string prompt)
-	: _prompt(prompt)
+	: _original_prompt(prompt)
 	, _cursor(0)
 	, _window(0)
 	, _done(false)
+	, _mode(_modes.end())
+{
+	init();
+}
+
+Editbox::Editbox(std::string prompt, ModesList modes)
+	: _original_prompt(prompt)
+	, _cursor(0)
+	, _window(0)
+	, _done(false)
+	, _modes(modes)
+	, _mode(_modes.begin())
+{
+	init();
+}
+
+void Editbox::init()
 {
 	update_terminal_size();
 
@@ -19,7 +36,7 @@ Editbox::Editbox(std::string prompt)
 		_input.register_input_sequence(tmp, KEY_HANDLER(Editbox::on_printable_input));
 	}
 
-	tmp = boost::assign::list_of(10);
+	tmp = boost::assign::list_of('\n'); // cariage return...
 	_input.register_input_sequence(tmp, KEY_HANDLER(Editbox::on_enter));
 	tmp = boost::assign::list_of(KEY_BACKSPACE);
 	_input.register_input_sequence(tmp, KEY_HANDLER(Editbox::on_backspace));
@@ -33,8 +50,22 @@ Editbox::Editbox(std::string prompt)
 	_input.register_input_sequence(tmp, KEY_HANDLER(Editbox::on_home));
 	tmp = boost::assign::list_of(KEY_END);
 	_input.register_input_sequence(tmp, KEY_HANDLER(Editbox::on_end));
+	tmp = boost::assign::list_of('\t'); // tab...
+	_input.register_input_sequence(tmp, KEY_HANDLER(Editbox::on_tab));
 
-	_text_width = _width - prompt.length() - 2;
+	recalc_prompt();
+}
+
+void Editbox::recalc_prompt()
+{
+	_prompt = _original_prompt;
+	if (_modes.empty()) {
+		_prompt += ": ";
+	} else {
+		_prompt += " (";
+		_prompt += *_mode;
+		_prompt += "): ";
+	}
 }
 
 struct CursorVisibilityGuard
@@ -49,9 +80,11 @@ std::string Editbox::run()
 
 	while (!_done) {
 		update_terminal_size();
+		recalc_prompt();
+		_text_width = _width - _prompt.length();
 
 		std::stringstream ss;
-		ss << _prompt << ": ";
+		ss << _prompt;
 
 		std::string substr = _text.substr(_window, std::min(_text_width, u32(_text.length() - _window)));
 		ss << substr;
@@ -72,7 +105,7 @@ std::string Editbox::run()
 
 		_brush.draw_line(_text_height + 1, line);
 
-		move(_text_height + 1, _cursor - _window + _prompt.length() + 2);
+		move(_text_height + 1, _cursor - _window + _prompt.length());
 		refresh();
 
 		_input.wait_for_input();
@@ -162,5 +195,13 @@ void Editbox::on_end(char c)
 {
 	_cursor = _text.length();
 	_window = _text.length() - _text_width + 1;
+}
+
+void Editbox::on_tab(char c)
+{
+	_mode++;
+	if (_mode == _modes.end()) {
+		_mode = _modes.begin();
+	}
 }
 

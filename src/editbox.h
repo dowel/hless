@@ -11,7 +11,13 @@
 class Editbox : public SizeAware
 {
 public:
+	typedef std::list<std::string> ModesList;
+
 	Editbox(std::string prompt);
+	Editbox(std::string prompt, ModesList modes);
+
+	void init();
+	void recalc_prompt();
 
 	std::string run();
 
@@ -23,8 +29,12 @@ public:
 	void on_right(char c);
 	void on_home(char c);
 	void on_end(char c);
+	void on_tab(char c);
+
+	std::string get_mode() { return *_mode; }
 
 private:
+	std::string _original_prompt;
 	std::string _prompt;
 	Brush _brush;
 	std::string _text;
@@ -33,6 +43,8 @@ private:
 	u32 _cursor; // position of the cursor relative to the beginning of the line.
 	u32 _window; // position in the buffer where visible part of the edited line begins.
 	bool _done;
+	ModesList _modes;
+	ModesList::iterator _mode;
 };
 
 #endif
