@@ -232,8 +232,8 @@ void Hless::on_goto_end(char c)
 
 void Hless::on_goto(char c)
 {
-	Editbox::ModesList modes = boost::assign::list_of(std::string("hello"))(std::string("world"));
-	Editbox ed("hello world", modes);
+	Editbox::ModesList modes = boost::assign::list_of(std::string("offset"))(std::string("line"));
+	Editbox ed("Go to", modes);
 	ed.run();
 }
 
