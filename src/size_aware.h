@@ -19,12 +19,14 @@ public:
 		_maxx = stdscr->_maxx;
 		_maxy = stdscr->_maxy;
 		_width = _maxx + 1;
+		_height = _maxy + 1;
 		_text_height = _maxy + 1 - Config::status_bar_height;
 
 		if (!printed) {
-			Log1("Terminal initialized with " << _maxx << "x" << _maxy << " terminal size");
+			Log1("Terminal initialized with " << _width << "x" << _height << " terminal size");
+			printed = true;
 		} else {
-			Log2("Terminal updated with " << _maxx << "x" << _maxy << " terminal size");
+			Log2("Terminal updated with " << _width << "x" << _height << " terminal size");
 		}
 	}
 
@@ -32,6 +34,7 @@ protected:
 	u32 _maxx;
 	u32 _maxy;
 	u32 _width;
+	u32 _height;
 	u32 _text_height;
 };
 

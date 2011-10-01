@@ -23,10 +23,16 @@ Editbox::Editbox(std::string prompt)
 	_input.register_input_sequence(tmp, KEY_HANDLER(Editbox::on_enter));
 	tmp = boost::assign::list_of(KEY_BACKSPACE);
 	_input.register_input_sequence(tmp, KEY_HANDLER(Editbox::on_backspace));
+	tmp = boost::assign::list_of(KEY_DC);
+	_input.register_input_sequence(tmp, KEY_HANDLER(Editbox::on_delete));
 	tmp = boost::assign::list_of(KEY_LEFT);
 	_input.register_input_sequence(tmp, KEY_HANDLER(Editbox::on_left));
 	tmp = boost::assign::list_of(KEY_RIGHT);
 	_input.register_input_sequence(tmp, KEY_HANDLER(Editbox::on_right));
+	tmp = boost::assign::list_of(KEY_HOME);
+	_input.register_input_sequence(tmp, KEY_HANDLER(Editbox::on_home));
+	tmp = boost::assign::list_of(KEY_END);
+	_input.register_input_sequence(tmp, KEY_HANDLER(Editbox::on_end));
 
 	_text_width = _width - prompt.length() - 2;
 }
@@ -58,6 +64,11 @@ std::string Editbox::run()
 		}
 
 		Log1("Current editbox line: " << line);
+		if (LogLevelEnabled(2)) {
+			Line temp_line(_text);
+			Log2("Entire editbox line: " << temp_line);
+			Log2("Cursor at " << _cursor << ", window at " << _window << ", text width " << _text_width);
+		}
 
 		_brush.draw_line(_text_height + 1, line);
 
@@ -101,6 +112,22 @@ void Editbox::on_backspace(char c)
 	_cursor--;
 }
 
+void Editbox::on_delete(char c)
+{
+	if (_cursor == _text.length()) {
+		return;
+	}
+
+	if (_cursor == 0) {
+		_text = _text.substr(1);
+	} else {
+		std::string part1 = _text.substr(0, _cursor);
+		std::string part2 = _text.substr(_cursor + 1);
+
+		_text = part1 + part2;
+	}
+}
+
 void Editbox::on_left(char c)
 {
 	if (_cursor == 0) {
@@ -120,8 +147,20 @@ void Editbox::on_right(char c)
 	}
 
 	_cursor++;
-	if (_cursor - _window > _text_width) {
+	if (_cursor - _window >= _text_width) {
 		_window++;
 	}
+}
+
+void Editbox::on_home(char c)
+{
+	_cursor = 0;
+	_window = 0;
+}
+
+void Editbox::on_end(char c)
+{
+	_cursor = _text.length();
+	_window = _text.length() - _text_width + 1;
 }
 

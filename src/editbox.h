@@ -18,8 +18,11 @@ public:
 	void on_printable_input(char c);
 	void on_enter(char c);
 	void on_backspace(char c);
+	void on_delete(char c);
 	void on_left(char c);
 	void on_right(char c);
+	void on_home(char c);
+	void on_end(char c);
 
 private:
 	std::string _prompt;

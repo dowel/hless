@@ -16,6 +16,8 @@ StatusBar::~StatusBar()
 
 void StatusBar::redraw(Buffer::iterator& cursor)
 {
+	update_terminal_size();
+
 	// Drawing first line...
 	std::stringstream ss1;
 	ss1 << "  " << cursor.string_name();

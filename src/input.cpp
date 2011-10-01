@@ -44,7 +44,7 @@ void InputProcessor::wait_for_input()
 	InputTreeNode* temp;
 	while (true) {
 		ch = getch();
-		Log1("Received input character " << ch);
+		Log2("Received input character " << ch);
 		seq.push_back(ch);
 		temp = node->get_node(ch);
 		if (temp) {

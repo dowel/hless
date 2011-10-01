@@ -36,6 +36,8 @@
 #define ContError(s) ContLog(Logging::LOG_LEVEL_ERROR, s)
 #define ContWarn(s) ContLog(Logging::LOG_LEVEL_ERROR, s)
 
+#define LogLevelEnabled(level) LogLevel(level) >= Logging::GetMinLevel(MODULE_NAME)
+
 class LogStream;
 class LogLevel;
 

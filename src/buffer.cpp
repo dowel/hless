@@ -85,8 +85,8 @@ void Buffer::read_line(iterator& it, Line& line)
 	u32 size = it->get_length() + 1;
 	char* temp = new char[size];
 	_file.read(size, it->get_offset(), temp);
-	line.init_copyless(temp, it->get_length() + 1);
-	line[line.length() - 1] = 0;
+	line.init_copyless(temp, it->get_length());
+	line[line.length()] = 0;
 }
 
 Buffer::iterator Buffer::begin()

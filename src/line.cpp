@@ -40,10 +40,10 @@ Line::~Line()
 
 void Line::init(const char* str, u32 length)
 {
-	_length = length + 1;
-	_string.reset(new char[_length]);
-	memcpy(_string.get(), str , _length);
-	_string[_length - 1] = 0;
+	_length = length;
+	_string.reset(new char[_length + 1]);
+	memcpy(_string.get(), str , _length + 1);
+	_string[_length] = 0;
 }
 
 void Line::init_copyless(char* str, u32 length)
@@ -60,7 +60,7 @@ void Line::strip_back()
 	if (_length == 0) {
 		return;
 	}
-	while (!isprint(_string[_length - 1])) {
+	while (!isprint(_string[_length])) {
 		_length--;
 	}
 	_string[_length] = 0;
@@ -101,7 +101,7 @@ void Line::split_lines(u32 length, LineList& lst)
 
 char& Line::operator[](const u32& index)
 {
-	if (index >= _length) {
+	if (index > _length) {
 		throw Exception(STR("Attempt to access beyond end of line. Line '" << get(64) << "', index " << index));
 	}
 	return _string[index];
@@ -110,11 +110,11 @@ char& Line::operator[](const u32& index)
 Line& Line::operator+=(const Line& b)
 {
 	boost::shared_array<char> temp = _string;
-	_string.reset(new char[_length + b._length - 1]);
-	memcpy(_string.get(), temp.get(), _length - 1);
-	memcpy(_string.get() + _length - 1, b._string.get(), b._length);
-	_length = _length + b._length - 1;
-	_string[_length - 1] = 0;
+	_string.reset(new char[_length + b._length + 1]);
+	memcpy(_string.get(), temp.get(), _length);
+	memcpy(_string.get() + _length, b._string.get(), b._length);
+	_length = _length + b._length;
+	_string[_length] = 0;
 	return *this;
 }
 
