@@ -115,7 +115,7 @@ void Screen::stage_reversed_redraw(Buffer::iterator& bottom,
 
 	update_terminal_size();
 
-	u32 i = _text_height;
+	s32 i = _text_height;
 	Buffer::iterator it = bottom;
 	u32 lines_in = line_in_bottom + 1;
 	u32 prev_lines_in = 0;
