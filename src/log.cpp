@@ -58,8 +58,8 @@ LogStream::~LogStream()
 std::ostream& LogStream::WriteHeaders(const char* file, int line, const char* func, 
 	const char* module, int level)
 {
-	_os << boost::posix_time::from_time_t(time(0)) << " [" << std::setw(10) << 
-		module << std::setw(0) << "] ";
+	_os << boost::posix_time::from_time_t(time(0)) << " [" << std::setw(10) << std::right << 
+		module << std::setw(0) << ":" << std::setw(4) << std::left << line << "]" << std::setw(0);
 	switch (level) {
 	case Logging::LOG_LEVEL_ERROR:  _os << "[--- ERROR ---]"; break;
 	case Logging::LOG_LEVEL_WARN:   _os << "[WARN]"; break;
