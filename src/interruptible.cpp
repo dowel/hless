@@ -1,16 +1,22 @@
+#include <string.h>
+#include <ncurses.h>
+
 #include "interruptible.h"
+
+static __attribute__((unused)) const char* MODULE_NAME = "intr";
 
 static void signal_handler(int signum)
 {
+	Log1("Received signal " << signum);
+	ungetch(0);
 }
 
 Interruptible::Interruptible()
 	: _interrupted(false)
-	, _prev(0) 
 {
 }
 
-Interruptible::set_interruptible()
+void Interruptible::set_interruptible()
 {
 	struct sigaction act;
 	memset(&act, 0, sizeof(struct sigaction));
@@ -19,7 +25,7 @@ Interruptible::set_interruptible()
 	sigaction(SIGINT, &act, &_prev);
 }
 
-Interruptible::set_as_before()
+void Interruptible::set_as_before()
 {
 	sigaction(SIGINT, 0, &_prev);
 }

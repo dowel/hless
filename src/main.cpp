@@ -38,6 +38,7 @@ int main(int argc, char* argv[])
 	Logging::SetMinLevel("chunk", Logging::LOG_LEVEL1);
 	Logging::SetMinLevel("status", Logging::LOG_LEVEL1);
 	Logging::SetMinLevel("editbox", Logging::LOG_LEVEL2);
+	Logging::SetMinLevel("intr", Logging::LOG_LEVEL1);
 
 	Log1("Hello and welcome to hless log file!!!");
 

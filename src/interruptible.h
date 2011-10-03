@@ -16,27 +16,29 @@ public:
 
 	bool get_interrupted();
 
-private:
+protected:
 	bool _interrupted;
-	struct sigaction* _prev;
+
+private:
+	struct sigaction _prev;
 };
 
 class InterruptibleGuard
 {
 public:
 	explicit InterruptibleGuard(Interruptible& interruptible)
-		: _interruptible(interruptible);
+		: _interruptible(interruptible)
 	{
 		_interruptible.set_interruptible();
 	}
 
-	~Interruptible()
+	~InterruptibleGuard()
 	{
 		_interruptible.set_as_before();
 	}
 
 private:
-	Interruptile& _interruptible;
+	Interruptible& _interruptible;
 };
 
 #endif

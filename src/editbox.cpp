@@ -77,8 +77,9 @@ struct CursorVisibilityGuard
 std::string Editbox::run()
 {
 	CursorVisibilityGuard curs_guard;
+	InterruptibleGuard ctrl_c(*this);
 
-	while (!_done) {
+	while (!_done && !_interrupted) {
 		update_terminal_size();
 		recalc_prompt();
 		_text_width = _width - _prompt.length();

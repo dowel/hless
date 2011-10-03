@@ -7,8 +7,9 @@
 #include "brush.h"
 #include "size_aware.h"
 #include "input.h"
+#include "interruptible.h"
 
-class Editbox : public SizeAware
+class Editbox : public SizeAware, public Interruptible
 {
 public:
 	typedef std::list<std::string> ModesList;
