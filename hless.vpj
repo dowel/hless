@@ -1,0 +1,214 @@
+<!DOCTYPE Project SYSTEM "http://www.slickedit.com/dtd/vse/10.0/vpj.dtd">
+<Project
+	Version="10.0"
+	VendorName="SlickEdit"
+	WorkingDir=".">
+	<Config
+		Name="Debug"
+		Type="cpp"
+		DebugCallbackName="gdb"
+		OutputFile="%bdhless"
+		CompilerConfigName="Latest Version">
+		<Menu>
+			<Target
+				Name="Compile"
+				MenuCaption="&amp;Compile"
+				CaptureOutputWith="ProcessBuffer"
+				OutputExts="*.o"
+				SaveOption="SaveCurrent"
+				RunFromDir="%rw">
+				<Exec CmdLine='cc -c -g %i %defd -o "%bd%n.o" "%f"'/>
+			</Target>
+			<Target
+				Name="Link"
+				MenuCaption="&amp;Link">
+				<Exec CmdLine='cc -g -o "%o" %f %libs'/>
+			</Target>
+			<Target
+				Name="Build"
+				MenuCaption="&amp;Build"
+				CaptureOutputWith="ProcessBuffer"
+				SaveOption="SaveWorkspaceFiles"
+				RunFromDir="%rw">
+				<Exec CmdLine='"%(VSLICKBIN1)vsbuild" build "%w" "%r"'/>
+			</Target>
+			<Target
+				Name="Rebuild"
+				MenuCaption="&amp;Rebuild"
+				CaptureOutputWith="ProcessBuffer"
+				SaveOption="SaveWorkspaceFiles"
+				RunFromDir="%rw">
+				<Exec CmdLine='"%(VSLICKBIN1)vsbuild" rebuild "%w" "%r"'/>
+			</Target>
+			<Target
+				Name="Debug"
+				MenuCaption="&amp;Debug"
+				SaveOption="SaveNone"
+				BuildFirst="1"
+				CaptureOutputWith="ProcessBuffer"
+				RunFromDir="%rw">
+				<Exec CmdLine='vsdebugio -prog "%o"'/>
+			</Target>
+			<Target
+				Name="Execute"
+				MenuCaption="E&amp;xecute"
+				SaveOption="SaveNone"
+				BuildFirst="1"
+				CaptureOutputWith="ProcessBuffer"
+				RunFromDir="%rw">
+				<Exec CmdLine='"%o"'/>
+			</Target>
+		</Menu>
+	</Config>
+	<Config
+		Name="Release"
+		Type="cpp"
+		DebugCallbackName="gdb"
+		OutputFile="%bdhless"
+		CompilerConfigName="Latest Version">
+		<Menu>
+			<Target
+				Name="Compile"
+				MenuCaption="&amp;Compile"
+				CaptureOutputWith="ProcessBuffer"
+				SaveOption="SaveCurrent"
+				OutputExts="*.o"
+				RunFromDir="%rw">
+				<Exec CmdLine='cc -c -O %i %defd -o "%bd%n.o" "%f"'/>
+			</Target>
+			<Target
+				Name="Link"
+				MenuCaption="&amp;Link">
+				<Exec CmdLine='cc -O -o "%o" %f %libs'/>
+			</Target>
+			<Target
+				Name="Build"
+				MenuCaption="&amp;Build"
+				CaptureOutputWith="ProcessBuffer"
+				SaveOption="SaveWorkspaceFiles"
+				RunFromDir="%rw">
+				<Exec CmdLine='"%(VSLICKBIN1)vsbuild" build "%w" "%r"'/>
+			</Target>
+			<Target
+				Name="Rebuild"
+				MenuCaption="&amp;Rebuild"
+				CaptureOutputWith="ProcessBuffer"
+				SaveOption="SaveWorkspaceFiles"
+				RunFromDir="%rw">
+				<Exec CmdLine='"%(VSLICKBIN1)vsbuild" rebuild "%w" "%r"'/>
+			</Target>
+			<Target
+				Name="Debug"
+				MenuCaption="&amp;Debug"
+				SaveOption="SaveNone"
+				BuildFirst="1"
+				CaptureOutputWith="ProcessBuffer"
+				RunFromDir="%rw">
+				<Exec CmdLine='vsdebugio -prog "%o"'/>
+			</Target>
+			<Target
+				Name="Execute"
+				MenuCaption="E&amp;xecute"
+				SaveOption="SaveNone"
+				BuildFirst="1"
+				CaptureOutputWith="ProcessBuffer"
+				RunFromDir="%rw">
+				<Exec CmdLine='"%o"'/>
+			</Target>
+		</Menu>
+	</Config>
+	<Rules Name="Compile">
+		<Rule
+			InputExts="*.s"
+			OutputExts="*.o"
+			LinkObject="1">
+			<Exec CmdLine='as -o "%bd%n.o" "%f"'/>
+		</Rule>
+	</Rules>
+	<Files>
+		<Folder
+			Name="Source Files"
+			Filters="*.c;*.C;*.cc;*.cpp;*.cp;*.cxx;*.c++;*.prg;*.pas;*.dpr;*.asm;*.s;*.bas;*.java;*.cs;*.sc;*.e;*.cob;*.html;*.rc;*.tcl;*.py;*.pl;*.d">
+			<F N="py_hless/auxilary/array_array.py"/>
+			<F N="py_hless/auxilary/bisect_search.py"/>
+			<F N="src/brush.cpp"/>
+			<F N="src/buffer.cpp"/>
+			<F N="src/cache.cpp"/>
+			<F N="py_hless/ccurs/ccurs.cpp"/>
+			<F N="src/chunk.cpp"/>
+			<F N="py_hless/auxilary/colors.py"/>
+			<F N="py_hless/curs/colors.py"/>
+			<F N="py_hless/auxilary/comp.py"/>
+			<F N="py_hless/auxilary/create_rotating_log.py"/>
+			<F N="py_hless/curs/create_rotating_log.py"/>
+			<F N="py_hless/curs/curs.py"/>
+			<F N="src/editbox.cpp"/>
+			<F N="src/error.cpp"/>
+			<F N="src/file.cpp"/>
+			<F N="py_hless/io/gzipped.py"/>
+			<F N="py_hless/io/gzipped_buff.py"/>
+			<F N="py_hless/io/gzipped_just_read.py"/>
+			<F N="py_hless/io/gzipped_read_by_chunks.py"/>
+			<F N="py_hless/io/gzipped_read_threaded.py"/>
+			<F N="src/hless.cpp"/>
+			<F N="src/input.cpp"/>
+			<F N="src/interruptible.cpp"/>
+			<F N="py_hless/curs/keys.py"/>
+			<F N="src/line.cpp"/>
+			<F N="py_hless/io/lines.py"/>
+			<F N="py_hless/auxilary/lines_search.py"/>
+			<F N="src/log.cpp"/>
+			<F N="src/main.cpp"/>
+			<F N="src/meta_line.cpp"/>
+			<F N="py_hless/io/mmapio.py"/>
+			<F N="py_hless/auxilary/num_array.py"/>
+			<F N="src/plain_file.cpp"/>
+			<F N="src/screen.cpp"/>
+			<F N="src/status_bar.cpp"/>
+			<F N="py_hless/io/stringio.py"/>
+			<F N="py_hless/auxilary/tail-f.py"/>
+		</Folder>
+		<Folder
+			Name="Header Files"
+			Filters="*.h;*.H;*.hh;*.hpp;*.hxx;*.inc;*.sh;*.cpy;*.if">
+			<F N="src/brush.h"/>
+			<F N="src/buffer.h"/>
+			<F N="src/cache.h"/>
+			<F N="src/chunk.h"/>
+			<F N="src/config.h"/>
+			<F N="py_hless/debug.sh"/>
+			<F N="src/editbox.h"/>
+			<F N="src/error.h"/>
+			<F N="src/file.h"/>
+			<F N="src/hless.h"/>
+			<F N="src/input.h"/>
+			<F N="src/interruptible.h"/>
+			<F N="src/line.h"/>
+			<F N="src/log.h"/>
+			<F N="py_hless/makeman.sh"/>
+			<F N="src/meta_line.h"/>
+			<F N="py_hless/auxilary/nightly_commit.sh"/>
+			<F N="src/plain_file.h"/>
+			<F N="src/readable.h"/>
+			<F N="src/screen.h"/>
+			<F N="src/size_aware.h"/>
+			<F N="src/status_bar.h"/>
+			<F N="src/types.h"/>
+		</Folder>
+		<Folder
+			Name="Resource Files"
+			Filters="*.ico;*.cur;*.dlg"/>
+		<Folder
+			Name="Bitmaps"
+			Filters="*.bmp"/>
+		<Folder
+			Name="Other Files"
+			Filters="">
+			<F N="py_hless/old/hless-0.2"/>
+			<F N="py_hless/hless.txt"/>
+			<F
+				N="Makefile"
+				Type="Makefile"/>
+		</Folder>
+	</Files>
+</Project>
