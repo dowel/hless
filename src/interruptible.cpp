@@ -5,10 +5,14 @@
 
 static __attribute__((unused)) const char* MODULE_NAME = "intr";
 
+Interruptible* Interruptible::_current_interruptible = 0;
+
 static void signal_handler(int signum)
 {
 	Log1("Received signal " << signum);
-	ungetch(0);
+	if (Interruptible::current_interruptible()) {
+		Interruptible::current_interruptible()->set_interrupted();
+	}
 }
 
 Interruptible::Interruptible()
@@ -23,10 +27,17 @@ void Interruptible::set_interruptible()
 	act.sa_handler = signal_handler;
 	sigfillset(&act.sa_mask);
 	sigaction(SIGINT, &act, &_prev);
+	_current_interruptible = this;
 }
 
 void Interruptible::set_as_before()
 {
-	sigaction(SIGINT, 0, &_prev);
+	_current_interruptible = 0;
+	sigaction(SIGINT, &_prev, 0);
+}
+
+Interruptible* Interruptible::current_interruptible()
+{
+	return _current_interruptible;
 }
 

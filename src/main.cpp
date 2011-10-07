@@ -32,7 +32,7 @@ int main(int argc, char* argv[])
 	Logging::SetMinLevel("file", Logging::LOG_LEVEL1);
 	Logging::SetMinLevel("cache", Logging::LOG_LEVEL1);
 	Logging::SetMinLevel("plain", Logging::LOG_LEVEL1);
-	Logging::SetMinLevel("input", Logging::LOG_LEVEL1);
+	Logging::SetMinLevel("input", Logging::LOG_LEVEL2);
 	Logging::SetMinLevel("brush", Logging::LOG_LEVEL3);
 	Logging::SetMinLevel("line", Logging::LOG_LEVEL_WARN);
 	Logging::SetMinLevel("chunk", Logging::LOG_LEVEL1);
