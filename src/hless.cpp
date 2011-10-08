@@ -140,16 +140,16 @@ void Hless::on_up_key(char c)
 	if (_cursor == _current) {
 		Log2("Cursor is at the top of the screen...");
 
-		Buffer::iterator temp = _cursor;
-		temp--;
-		if (temp == Buffer::end()) {
-			Log2("Cursor is at the top of the input file...");
-			return;
-		}
-
 		if (_line_in_current > 0) {
 			_line_in_current--;
 		} else {
+			Buffer::iterator temp = _cursor;
+			temp--;
+			if (temp == Buffer::end()) {
+				Log2("Cursor is at the top of the input file...");
+				return;
+			}
+
 			if (_current->get_offset() != 0) {
 				_current--;
 
