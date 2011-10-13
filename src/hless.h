@@ -38,6 +38,8 @@ public:
 	void on_goto_end(char c);
 	void on_goto(char c);
 
+	void on_debug(char c);
+
 private:
 	Buffer& _buffer;
 

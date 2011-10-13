@@ -4,6 +4,7 @@
 #include "hless.h"
 #include "log.h"
 #include "editbox.h"
+#include "border.h"
 
 static __attribute__((unused)) const char* MODULE_NAME = "hless";
 
@@ -40,6 +41,9 @@ void Hless::run()
 	_input.register_input_sequence(tmp, KEY_HANDLER(Hless::on_goto_end));
 	tmp = boost::assign::list_of(':');
 	_input.register_input_sequence(tmp, KEY_HANDLER(Hless::on_goto));
+
+	tmp = boost::assign::list_of('D');
+	_input.register_input_sequence(tmp, KEY_HANDLER(Hless::on_debug));
 
 	_current = _buffer.begin();
 	_cursor = _current;
@@ -235,5 +239,10 @@ void Hless::on_goto(char c)
 	Editbox::ModesList modes = boost::assign::list_of(std::string("offset"))(std::string("line"));
 	Editbox ed("Go to", modes);
 	ed.run();
+}
+
+void Hless::on_debug(char c)
+{
+
 }
 
