@@ -5,6 +5,7 @@
 #include "log.h"
 #include "editbox.h"
 #include "border.h"
+#include "progress.h"
 
 static __attribute__((unused)) const char* MODULE_NAME = "hless";
 
@@ -241,8 +242,27 @@ void Hless::on_goto(char c)
 	ed.run();
 }
 
+class SampleProgressing : public Progressing
+{
+public:
+	virtual float progress() {
+		return float(_progress);
+	}
+
+	virtual void run() {
+		_progress++;
+		sleep(1);
+	}
+
+private:
+	u32 _progress;
+};
+
 void Hless::on_debug(char c)
 {
+	SampleProgressing sample;
+	ProgressBar pb(sample);
 
+	pb.show();
 }
 

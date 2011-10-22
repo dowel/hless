@@ -55,6 +55,7 @@ public:
 	static Color* text_color;
 	static Color* cursor_color;
 	static Color* status_bar_color;
+	static Color* progress_bar_color;
 
 	void draw_text(u32 x, u32 y, Line& line, Color* color = text_color);
 	void draw_line(u32 y, Line& line, Color* color = text_color);

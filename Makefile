@@ -1,6 +1,6 @@
 TARGET = hless
 SRC =  main hless file buffer log screen plain_file cache input brush line error
-SRC += meta_line chunk status_bar editbox interruptible progress border
+SRC += meta_line chunk status_bar editbox interruptible progress border asynchronous
 
 O = obj
 S = src
@@ -18,7 +18,7 @@ all: $(_TARGET)
 
 $(_TARGET): $(_OBJS)
 	@echo [LD] $(_TARGET)
-	@$(CXX) $(LDFLAGS) $(_OBJS) -o $(_TARGET)
+	@$(CXX) $(_OBJS) $(LDFLAGS) -o $(_TARGET)
 
 $O/%.o: $S/%.cpp
 	@echo [CXX] $@

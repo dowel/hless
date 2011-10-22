@@ -6,6 +6,7 @@ static __attribute__((unused)) const char* MODULE_NAME = "brush";
 Brush::Color* Brush::text_color = 0;
 Brush::Color* Brush::cursor_color = 0;
 Brush::Color* Brush::status_bar_color = 0;
+Brush::Color* Brush::progress_bar_color = 0;
 
 u32 Brush::Color::_last_pair = 1;
 
@@ -14,6 +15,7 @@ void Brush::init_colors()
 	Brush::text_color = new Brush::Color("text color");
 	Brush::cursor_color = new Brush::Color("cursor color", Brush::Color::BLACK, Brush::Color::YELLOW);
 	Brush::status_bar_color = new Brush::Color("status bar color", Brush::Color::BLACK, Brush::Color::WHITE);
+	Brush::progress_bar_color = new Brush::Color("progress bar color", Brush::Color::BLUE, Brush::Color::YELLOW);
 }
 
 Brush::Color::Color(std::string name)
