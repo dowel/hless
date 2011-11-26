@@ -21,7 +21,7 @@ Line::Line(std::string str)
 	init(str.c_str(), str.length());
 }
 
-Line::Line(Line& other)
+Line::Line(const Line& other)
 {
 	init(other._string.get(), other._length);
 }
@@ -116,6 +116,11 @@ Line& Line::operator+=(const Line& b)
 	_length = _length + b._length;
 	_string[_length] = 0;
 	return *this;
+}
+
+Line Line::substr(u32 start, u32 length)
+{
+	return Line(_string.get() + start, length);
 }
 
 std::ostream& operator<<(std::ostream& os, Line& line)

@@ -40,10 +40,12 @@ Border::~Border()
 	}
 }
 
-void Border::draw()
+void Border::draw(Color* color)
 {
 	if (_window) {
+		color->seton(_window);
 		box(_window, ACS_VLINE, ACS_HLINE);
+		color->setoff(_window);
 		wrefresh(_window);
 	}
 }

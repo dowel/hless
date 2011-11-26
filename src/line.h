@@ -27,7 +27,7 @@ public:
 	Line(char* str);
 	Line(char* str, u32 length);
 	Line(std::string str);
-	Line(Line& other);
+	Line(const Line& other);
 	Line(char c, u32 how_many);
 	~Line();
 
@@ -46,6 +46,8 @@ public:
 
 	void split_lines(u32 length, LineList& lst);
 
+	Line substr(u32 start, u32 length);
+
 	char& operator[](const u32& index);
 	Line& operator+=(const Line& other);
 
@@ -56,6 +58,7 @@ private:
 	u32 _length;
 	boost::shared_array<char> _string;
 	boost::shared_array<char> _temp_buffer;
+	Line* _temp_line; // used to return substrings...
 
 	static const u32 min_buffer_to_allocate = 256;
 };

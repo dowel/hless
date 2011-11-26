@@ -4,6 +4,7 @@
 #include <ncurses.h>
 
 #include "types.h"
+#include "brush.h"
 
 class Border
 {
@@ -13,7 +14,7 @@ public:
 	~Border();
 
 	void set_geometry(u32 x, u32 y, u32 width, u32 height);
-	void draw();
+	void draw(Color* color);
 
 private:
 	u32 _x;

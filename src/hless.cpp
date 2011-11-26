@@ -245,13 +245,18 @@ void Hless::on_goto(char c)
 class SampleProgressing : public Progressing
 {
 public:
+	SampleProgressing() : _progress(0) { }
+
 	virtual float progress() {
 		return float(_progress);
 	}
 
 	virtual void run() {
-		_progress++;
-		sleep(1);
+		while (true) {
+			Log1("Setting progress to " << _progress);
+			_progress++;
+			usleep(500000);
+		}
 	}
 
 private:
