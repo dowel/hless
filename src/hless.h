@@ -37,6 +37,7 @@ public:
 	void on_prev_page(char c);
 	void on_goto_end(char c);
 	void on_goto(char c);
+	void on_goto_beginning(char c);
 
 	void on_debug(char c);
 

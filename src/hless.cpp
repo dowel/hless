@@ -42,6 +42,8 @@ void Hless::run()
 	_input.register_input_sequence(tmp, KEY_HANDLER(Hless::on_goto_end));
 	tmp = boost::assign::list_of(':');
 	_input.register_input_sequence(tmp, KEY_HANDLER(Hless::on_goto));
+	tmp = boost::assign::list_of('g');
+	_input.register_input_sequence(tmp, KEY_HANDLER(Hless::on_goto_beginning));
 
 	tmp = boost::assign::list_of('D');
 	_input.register_input_sequence(tmp, KEY_HANDLER(Hless::on_debug));
@@ -239,7 +241,8 @@ void Hless::on_goto(char c)
 {
 	Editbox::ModesList modes = boost::assign::list_of(std::string("offset"))(std::string("line"));
 	Editbox ed("Go to", modes);
-	ed.run();
+	std::string spec = ed.run();
+	Log1("Asked to go to " << spec << " in mode " << ed.get_mode());
 }
 
 class SampleProgressing : public Progressing
@@ -269,5 +272,12 @@ void Hless::on_debug(char c)
 	ProgressBar pb(sample);
 
 	pb.show();
+}
+
+void Hless::on_goto_beginning(char c)
+{
+	_cursor = _buffer.begin();
+	_current = _cursor;
+	_line_in_current = 0;
 }
 
