@@ -18,8 +18,8 @@ void Brush::init_colors()
 	Brush::cursor_color = new Color("cursor color", Color::BLACK, Color::YELLOW);
 	Brush::status_bar_color = new Color("status bar color", Color::BLACK, Color::WHITE);
 	Brush::border_color = new Color("border color", Color::YELLOW, Color::BLUE);
-	Brush::progress_done_color = new Color("progress bar color", Color::YELLOW, Color::BLUE);
-	Brush::progress_remains_color = new Color("progress bar color", Color::YELLOW, Color::RED);
+	Brush::progress_done_color = new Color("progress bar color", Color::BLACK, Color::YELLOW);
+	Brush::progress_remains_color = new Color("progress bar color", Color::WHITE, Color::BLACK);
 }
 
 Color::Color(std::string name)

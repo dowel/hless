@@ -49,10 +49,16 @@ void ProgressBar::show()
 		line += l2;
 		line += l3;
 
-		u32 done = u32((progress / 100) * (width - 2));
-		done_range.set_length(done);
-		remains_range.set_start(done);
-		remains_range.set_length(width - 2 - done);
+		if (progress < 100) {
+			u32 done = u32((progress / 100) * (width - 2));
+			done_range.set_length(done);
+			remains_range.set_start(done);
+			remains_range.set_length(width - 2 - done);
+		} else {
+			done_range.set_length(width - 2);
+			remains_range.set_start(width - 2);
+			remains_range.set_length(0);
+		}
 
 		_brush.draw_text(_maxx / 4 + 1, _maxy / 2, line, ranges);
 
