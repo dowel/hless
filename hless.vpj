@@ -215,6 +215,8 @@
             <F N="src/log.cpp"/>
             <F N="src/log.h"/>
             <F N="src/main.cpp"/>
+            <F N="src/messagebox.cpp"/>
+            <F N="src/messagebox.h"/>
             <F N="src/meta_line.cpp"/>
             <F N="src/meta_line.h"/>
             <F N="src/plain_file.cpp"/>
