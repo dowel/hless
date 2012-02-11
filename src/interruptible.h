@@ -35,7 +35,7 @@ private:
 class InterruptibleGuard
 {
 public:
-	explicit InterruptibleGuard(Interruptible& interruptible)
+	InterruptibleGuard(Interruptible& interruptible)
 		: _interruptible(interruptible)
 	{
 		_interruptible.set_interruptible();

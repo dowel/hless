@@ -11,7 +11,7 @@ ProgressBar::ProgressBar(Progressing& progressing)
 
 void ProgressBar::show()
 {
-	InterruptibleGuard ig();
+	InterruptibleGuard ig(*this);
 
 	Log1("Spawning asynchronous process...");
 	spawn();

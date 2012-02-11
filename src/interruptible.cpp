@@ -22,6 +22,7 @@ Interruptible::Interruptible()
 
 void Interruptible::set_interruptible()
 {
+	Log1("Setting interruptible");
 	struct sigaction act;
 	memset(&act, 0, sizeof(struct sigaction));
 	act.sa_handler = signal_handler;
