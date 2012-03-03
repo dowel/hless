@@ -11,6 +11,11 @@ Line::Line(char* str)
 	init(str, strlen(str));
 }
 
+Line::Line(const char* str)
+{
+	init(str, strlen(str));
+}
+
 Line::Line(char* str, u32 length)
 {
 	init(str, length);

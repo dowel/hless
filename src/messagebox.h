@@ -3,7 +3,13 @@
 
 #include <string>
 
-class MessageBox
+#include "size_aware.h"
+#include "interruptible.h"
+#include "border.h"
+#include "brush.h"
+#include "input.h"
+
+class MessageBox : public SizeAware, public Interruptible
 {
 public:
 	MessageBox(std::string);
@@ -18,7 +24,27 @@ public:
 	 * 
 	 * @param timeout 
 	 */
-	void show(int timeout);
+	void show(u32 timeout);
+
+	enum Button {
+		OK_BUTTON = 1,
+		CANCEL_BUTTON
+	};
+
+	Button show_ok_cancel();
+
+	void on_enter(char c);
+
+private:
+	void show_text(std::string text, u32 x, u32 y, u32 width);
+	void show_ok(u32 x, u32 y, u32 width);
+
+	std::string _msg;
+
+	Border _border;
+	Brush _brush;
+	InputProcessor _input;
+	bool _done;
 };
 
 #endif

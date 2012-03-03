@@ -90,6 +90,7 @@ public:
 	static Color* border_color;
 	static Color* progress_done_color;
 	static Color* progress_remains_color;
+	static Color* active_button_color;
 
 	/**
 	 * Routines below used to draw text on screen using specified color. Difference between two is that 

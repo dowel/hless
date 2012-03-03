@@ -6,6 +6,7 @@
 #include "editbox.h"
 #include "border.h"
 #include "progress.h"
+#include "messagebox.h"
 
 static __attribute__((unused)) const char* MODULE_NAME = "hless";
 
@@ -268,10 +269,8 @@ private:
 
 void Hless::on_debug(char c)
 {
-	SampleProgressing sample;
-	ProgressBar pb(sample);
-
-	pb.show();
+	MessageBox msg(std::string("hello world... lets talk about love love love..."));
+	msg.show();
 }
 
 void Hless::on_goto_beginning(char c)

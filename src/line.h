@@ -25,6 +25,7 @@ class Line
 public:
 	Line() : _length(0) { }
 	Line(char* str);
+	Line(const char* str);
 	Line(char* str, u32 length);
 	Line(std::string str);
 	Line(const Line& other);
