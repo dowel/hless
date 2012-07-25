@@ -48,6 +48,12 @@ private:
 	StatusBar _status_bar;
 
 	InputProcessor _input;
+
+	// _current points to the top most line in the currently visible piece of buffer. Line of text it
+	// points to can span accross multiple lines on the screen. _line_in_current indicates screen line
+	// in the current buffer line of text that is visible. _cursor always points to buffer line where
+	// the cursor is. _bottom points to the bottom most visible buffer line on the screen.
+	// _line_in_bottom points to the last visible screen line in bottom buffer line that is visible.
     Buffer::iterator _current;
 	u32 _line_in_current;
     Buffer::iterator _cursor;
