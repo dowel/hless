@@ -58,6 +58,12 @@ private:
 	u64 _length;
 
 	std::deque<MetaLine> _lines;
+	// first line index is the index of the first line in the chunk. Normally, when chunk is created
+	// this number is 0. Next, if chunk grows down it remains 0. If chunk grows up, this number
+	// increases. This is needed for generating name of the line. Usually it consists of chunk name and
+	// line number. So, if chunk name is END, line name END+10 doesn't make sense. So, for chunks that
+	// grow up we have to be able to calculate negative index of the line in the chunk. To do that, we
+	// have to know first line of the chunk in the line.
 	u64 _first_line_index;
 
 	Chunk* _next;

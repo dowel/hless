@@ -105,11 +105,8 @@ void Chunk::grow_up()
 	u32 n = 0;
 	_file.read(how_much, start_from, buffer);
 
-	/**
-	 * Making sure buffer starts at the beginning of the line. If buffer adjacent to 
-	 * end of previous chunk, then we're ok. Otherwise, we have to find next available 
-	 * end of line and start from it. 
-	 */
+	// Making sure buffer starts at the beginning of the line. If buffer adjacent to end of previous
+	// chunk, then we're ok. Otherwise, we have to find next available end of line and start from it. 
 	if ((_prev && (_prev->_start_offset + _prev->_length != start_from)) || !_prev) {
 		while ((buffer[n] != '\n') && (n < how_much)) {
 			n++;
