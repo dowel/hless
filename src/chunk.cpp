@@ -144,7 +144,7 @@ void Chunk::grow_down()
 	}
 
 	char buffer[how_much];
-	u32 n =_file.read(Config::chunk_grow_size, _start_offset + _length, buffer);
+	u32 n =_file.read(how_much, _start_offset + _length, buffer);
 	split_lines(buffer, n);
 	Log2("Chunk after growing: " << this);
 }
