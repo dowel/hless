@@ -139,3 +139,48 @@ void Screen::stage_reversed_redraw(Buffer::iterator& bottom,
 		 "@" << line_in_current);
 }
 
+void Screen::stage_redraw_from_middle(Buffer::iterator cursor, 
+   Buffer::iterator& current,
+   u32& line_in_current) 
+{
+	Log1("Staging redraw from middle " << cursor);
+
+	update_terminal_size();
+
+	current = cursor;
+	line_in_current = 0;
+	Buffer::iterator up = current;
+	Buffer::iterator down = current;
+
+	LineList lst;
+	read_and_split(current, lst);
+
+	s32 lines_up = _text_height / 2;
+	u32 lines_down = (_text_height / 2) + lst.size();
+	while (1) {
+		up--;
+		down++;
+		if ((up == Buffer::end()) || (down == Buffer::end())) {
+			return; // we reached beginning of the buffer; bailing out.
+		}
+
+		current = up;
+
+		lst.clear();
+		read_and_split(up, lst);
+		lines_up -= lst.size();
+
+		lst.clear();
+		read_and_split(down, lst);
+		lines_down += lst.size();
+
+		if (lines_up <= 0 || lines_down >= _text_height) {
+			// reached end of the screen. current should point to our reasonably in the middle line.
+			break; 
+		}
+
+	}
+
+	// TODO: make sure to set line_in_current to correct value.
+}
+

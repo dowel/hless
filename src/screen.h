@@ -57,6 +57,21 @@ public:
 		u32& line_in_current);
 
 	/**
+	 * Stages screen redrawing without actually doing anything. This version redraws from the middle, 
+	 * assuming cursor is right at the middle. Once done, it sets current, line_in_current, bottom and 
+	 * line_in_button accordingly. 
+	 *  
+	 * @param cursor 
+	 * @param current 
+	 * @param line_in_current 
+	 * @param bottom 
+	 * @param line_in_bottom 
+	 */
+	void stage_redraw_from_middle(Buffer::iterator cursor, 
+	   Buffer::iterator& current,
+	   u32& line_in_current);
+
+	/**
 	 * Reads line from buffer and splits it into list of smaller lines according to width of the screen.
 	 * 
 	 * @param it - iterator pointing to the line to read.
