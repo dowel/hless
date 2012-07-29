@@ -18,6 +18,11 @@
  * It could have been lovely if we could inherit from std::string, but we can't.  
  */
 class Line;
+
+/**
+ * LineList has special purpose. Buffer contains lines of text. Not every line fit onto screen. So, 
+ * we have to split buffer lines into screen lines. LineList represents list of screen lines. 
+ */
 typedef std::list<boost::shared_ptr<Line> > LineList;
 
 class Line
