@@ -88,6 +88,9 @@ public:
 		iterator& operator--(int); // suffix form
 		iterator operator--(); // prefix form
 
+		iterator& operator+=(int);
+		iterator& operator-=(int);
+
 		friend std::ostream& operator<<(std::ostream& os, Buffer::iterator& it);
 		friend bool operator==(const Buffer::iterator& first, const Buffer::iterator& second);
 		friend bool operator!=(const Buffer::iterator& first, const Buffer::iterator& second);

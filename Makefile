@@ -8,7 +8,7 @@ S = src
 
 CXX = g++
 CXXFLAGS = -Wall -g
-LIBS = -pthread -lncurses
+LIBS = -pthread -lncurses -lboost_regex-mt
 LDFLAGS = -rdynamic $(LIBS)
 
 _TARGET = $(TARGET)

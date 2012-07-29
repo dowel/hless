@@ -80,6 +80,38 @@ Buffer::iterator Buffer::iterator::operator--() // prefix form
 	return it;
 }
 
+Buffer::iterator& Buffer::iterator::operator+=(int count)
+{
+	Log1("Asked to add " << count << " to iterator " << *this);
+	while (_chunk->get_absolute_line_index(_line_index + count) >= _chunk->get_lines_count()) {
+		// Checking if there's by a small chance next chunk and we're bumbing into it's boundary.
+		// If so, we want to move to next chunk...
+		Chunk* next = _chunk->get_next();
+		if (next && _chunk->get_end() == next->get_start_offset()) {
+			count -= _chunk->get_lines_count() - _chunk->get_absolute_line_index(_line_index);
+			_line_index = next->get_first_line_index();
+			_chunk = next;
+			Log1("Skipping to chunk " << _chunk << ", line index " << _line_index << ", count " << count);
+		} else {
+			u32 length = _chunk->get_lines_count();
+			_chunk->grow_down();
+			Log1("Current chunk has to next. Grew it to " << _chunk);
+			if (length == _chunk->get_lines_count()) { 
+				// This means chunk can no longer grow, i.e. reached end of buffer.
+				break;
+			}
+		}
+	}
+
+	_line_index += count;
+	return *this;
+}
+
+Buffer::iterator& Buffer::iterator::operator-=(int count) 
+{
+	return *this;
+}
+
 void Buffer::read_line(iterator& it, Line& line)
 {
 	u32 size = it->get_length() + 1;

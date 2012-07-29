@@ -1,5 +1,7 @@
 #include <boost/assign/list_of.hpp>
 #include <boost/bind.hpp>
+#include <boost/regex.hpp>
+#include <boost/lexical_cast.hpp>
 
 #include "hless.h"
 #include "log.h"
@@ -240,10 +242,21 @@ void Hless::on_goto_end(char c)
 
 void Hless::on_goto(char c)
 {
-	Editbox::ModesList modes = boost::assign::list_of(std::string("offset"))(std::string("line"));
+	Editbox::ModesList modes = boost::assign::list_of(std::string("line"))(std::string("offset"));
 	Editbox ed("Go to", modes);
 	std::string spec = ed.run();
 	Log1("Asked to go to " << spec << " in mode " << ed.get_mode());
+
+	// This is the case when we have only number in search box.
+	const boost::regex plain_number("^\\d+$");
+	if (boost::regex_match(spec, plain_number)) {
+		u32 line = boost::lexical_cast<u32>(spec);
+		_cursor = _buffer.begin();
+		_cursor += line;
+		Log1("Set new cursor posisition to " << _cursor);
+	}
+
+	_screen.stage_redraw_from_middle(_cursor, _current, _line_in_current);
 }
 
 class SampleProgressing : public Progressing
