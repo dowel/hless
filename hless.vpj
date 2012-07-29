@@ -8,7 +8,7 @@
         Type="cpp"
         DebugCallbackName="gdb"
         OutputFile="%bdhless"
-        CompilerConfigName="Latest Version">
+        CompilerConfigName="Default Compiler">
         <Menu>
             <Target
                 Name="Compile"
@@ -59,13 +59,16 @@
                 <Exec CmdLine='"%o"'/>
             </Target>
         </Menu>
+        <Includes>
+            <Include Dir="&lt;double click here to add another entry&gt;"/>
+        </Includes>
     </Config>
     <Config
         Name="Release"
         Type="cpp"
         DebugCallbackName="gdb"
         OutputFile="%bdhless"
-        CompilerConfigName="Latest Version">
+        CompilerConfigName="Default Compiler">
         <Menu>
             <Target
                 Name="Compile"
@@ -116,6 +119,9 @@
                 <Exec CmdLine='"%o"'/>
             </Target>
         </Menu>
+        <Includes>
+            <Include Dir="&lt;double click here to add another entry&gt;"/>
+        </Includes>
     </Config>
     <Rules Name="Compile">
         <Rule
