@@ -250,9 +250,13 @@ void Hless::on_goto(char c)
 	// This is the case when we have only number in search box.
 	const boost::regex plain_number("^\\d+$");
 	if (boost::regex_match(spec, plain_number)) {
-		u32 line = boost::lexical_cast<u32>(spec);
-		_cursor = _buffer.begin();
-		_cursor += line;
+		if (spec == "offset") {
+
+		} else {
+			u32 line = boost::lexical_cast<u32>(spec);
+			_cursor = _buffer.begin();
+			_cursor += line;
+		}
 		Log1("Set new cursor posisition to " << _cursor);
 	}
 

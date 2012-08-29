@@ -149,6 +149,10 @@ Buffer::iterator Buffer::back()
 	return it;
 }
 
+Buffer::iterator Buffer::offset(u64 offset)
+{
+}
+
 std::ostream& operator<<(std::ostream& os, Buffer::iterator& it)
 {
 	os << "[Iterator: " << *it;

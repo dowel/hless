@@ -136,6 +136,15 @@ public:
 	 */
 	iterator back();
 
+	/**
+	 * Returns iterator the points to specified offset in the file.
+	 *  
+	 * @param offset 
+	 * 
+	 * @return iterator 
+	 */
+	iterator offset(u64 offset);
+
 private:
 	Readable& _file;
 	ChunkList _chunks;
