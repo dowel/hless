@@ -20,23 +20,20 @@ class Chunk
 public:
 	Chunk(std::string name, 
 		  Readable& file,
-		  u32 chunk_index,
-		  u64 start,
-		  Chunk* next,
-		  Chunk* prev);
+		  u64 start);
 
 	MetaLine& get_line(s64 index) { return _lines.at(index + _first_line_index); }
 	u64 get_lines_count() { return _lines.size(); }
-	Chunk* get_next() { return _next; }
-	Chunk* get_prev() { return _prev; }
 	u64 get_length() { return _length; }
 	u64 get_start_offset() { return _start_offset; }
 	u64 get_end() { return _start_offset + _length; }
 	
 	void split_lines(char* buffer, u32 length);
 	void split_lines_reversed(char* buffer, u32 length);
-	void grow_up();
 	void grow_down();
+	void grow_down(u64 how_much);
+
+	void append_other(Chunk* other);
 
 	u64 get_absolute_line_index(s64 index) { return index + _first_line_index; }
 	s64 get_first_line_index() { return -_first_line_index; }
@@ -52,7 +49,6 @@ public:
 private:
 	std::string _name;
 	Readable& _file;
-	u32 _chunk_index;
 
 	u64 _start_offset;
 	u64 _length;
@@ -63,14 +59,11 @@ private:
 	// This is needed for two reasons: 1. generating name of the line. Usually it consists of chunk name
 	// and line number. So, if chunk name is END, line name END+10 doesn't make sense. So, for chunks
 	// that grow up we have to be able to calculate negative index of the line in the chunk. To do that,
-	// we have to know first line of the chunk in the line. Another reason for this is iterators.
+	// we have to know first line of the chunk in the line.
 	// Another and more important reason for this is iterators. Iterator has line number inside. When
 	// growing chunk up, line number in the iterator will become invalid. To avoid this, when growing
 	// up, line numbers of the newly added lines is in the negative range.
 	u64 _first_line_index;
-
-	Chunk* _next;
-	Chunk* _prev;
 };
 
 std::ostream& operator<<(std::ostream& os, Chunk& chunk);
