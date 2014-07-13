@@ -6,7 +6,7 @@ SRC += messagebox
 O = obj
 S = src
 
-CXX = g++
+CXX = clang++
 CXXFLAGS = -Wall -g
 LIBS = -pthread -lncurses -lboost_regex-mt
 LDFLAGS = -rdynamic $(LIBS)
