@@ -5,7 +5,7 @@
 #include "config.h"
 
 static __attribute__((unused)) const char* MODULE_NAME = "buffer";
-Buffer::iterator Buffer::_last(0, (u64)-1);
+Buffer::iterator Buffer::_last(0, (u64)-1, 0);
 
 Buffer::Buffer(Readable& file)
 	: _file(file)
@@ -24,12 +24,12 @@ Buffer::iterator& Buffer::iterator::operator++(int) // suffix form
 	if (_chunk->get_absolute_line_index(_line_index) >= _chunk->get_lines_count()) {
 		// Checking if there's by a small chance next chunk and we're bumping into it's boundary.
 		// If so, we want to move to next chunk...
-		Chunk* next = _buffer.get_next_chunk(_chunk);
+		Chunk* next = _buffer->get_next_chunk(_chunk);
 		if (next && _chunk->get_end() == next->get_start_offset()) {
 			_line_index = next->get_first_line_index();
 			_chunk = next;
 		} else {
-			_buffer.grow_chunk_down(_chunk);
+			_buffer->grow_chunk_down(_chunk);
 		}
 	}
 
@@ -54,13 +54,13 @@ Buffer::iterator& Buffer::iterator::operator--(int) // suffix form
 	if (_chunk->get_absolute_line_index(_line_index) == 0) {
 		// Checking if there's by a small chance previous chunk and we're bumbing into it's boundary.
 		// If so, we want to move to previous chunk...
-		Chunk* prev = _buffer.get_prev_chunk(_chunk);
+		Chunk* prev = _buffer->get_prev_chunk(_chunk);
 		if ((prev != 0) && (prev->get_end() == _chunk->get_start_offset())) {
 			_line_index = prev->get_last_line_index();
 			_chunk = prev;
 			return *this;
 		} else {
-			_chunk = _buffer.grow_chunk_up(_chunk);
+			_chunk = _buffer->grow_chunk_up(_chunk);
 		}
 	}
 
@@ -88,7 +88,7 @@ Buffer::iterator& Buffer::iterator::operator+=(int count)
 	while (_chunk->get_absolute_line_index(_line_index + count) >= _chunk->get_lines_count()) {
 		// Checking if there's by a small chance next chunk and we're bumbing into it's boundary.
 		// If so, we want to move to next chunk...
-		Chunk* next = _chunk->get_next();
+		Chunk* next = _buffer->get_next_chunk(_chunk);
 		if (next && _chunk->get_end() == next->get_start_offset()) {
 			count -= _chunk->get_lines_count() - _chunk->get_absolute_line_index(_line_index);
 			_line_index = next->get_first_line_index();
@@ -96,7 +96,7 @@ Buffer::iterator& Buffer::iterator::operator+=(int count)
 			Log1("Skipping to chunk " << _chunk << ", line index " << _line_index << ", count " << count);
 		} else {
 			u32 length = _chunk->get_lines_count();
-			_chunk->grow_down();
+			_buffer->grow_chunk_down(_chunk);
 			Log1("Current chunk has to next. Grew it to " << _chunk);
 			if (length == _chunk->get_lines_count()) { 
 				// This means chunk can no longer grow, i.e. reached end of buffer.
@@ -125,28 +125,33 @@ void Buffer::read_line(iterator& it, Line& line)
 
 Buffer::iterator Buffer::begin()
 {
+	Chunk* chunk;
 	if (_chunks.size() == 0) {
-		Chunk* chunk = new Chunk(std::string(""), _file, 0, 0, 0, 0);
+		chunk = new Chunk(std::string(""), _file, 0);
 		grow_chunk_down(chunk);
-		_chunks.push_back(chunk);
+		_chunks[chunk->get_start_offset()] = chunk;
+	} else {
+		chunk = _chunks.begin()->second;
 	}
-	iterator it(_chunks[0], _chunks[0]->get_first_line_index());
+	
+	iterator it(chunk, chunk->get_first_line_index(), this);
 	return it;
 }
 
 Buffer::iterator Buffer::back()
 {
 	// First, checking if last chunk in the chunk dequeu is reasonably close to the end of the buffer.
-	Chunk* last_chunk = _chunks.back();
-	if (_file.get_size() - last_chunk->get_end() < Config::chunk_grow_size) {
-		last_chunk->grow_down();
+	Chunk* chunk = _chunks.back();
+	if (_file.get_size() - chunk->get_end() < Config::chunk_grow_size) {
+		chunk->grow_down();
 	} else {
-		last_chunk = new Chunk("100%", _file, _chunks.size(), _file.get_size(), 0, _chunks.back());
-		grow_chunk_up(last_chunk);
-		_chunks.push_back(last_chunk);
+		chunk = new Chunk("100%", _file, _chunks.size(), _file.get_size(), 0, _chunks.back());
+		grow_chunk_up(chunk);
+		_chunks[chunk->get_start_offset()] = chunk;
+		_chunks.push_back(chunk);
 	}
 
-	iterator it(last_chunk, last_chunk->get_last_line_index());
+	iterator it(chunk, chunk->get_last_line_index(), _buffer);
 	Log2("Returning last line in the buffer " << it);
 	return it;
 }
@@ -167,12 +172,7 @@ Chunk* Buffer::grow_chunk_down(Chunk* chunk)
 		return chunk;
 	}
 
-	if (chunk->get_end() + Config::chunk_grow_size > next->get_start_offset()) {
-		chunk->grow_down(next->get_start_offset() - chunk->get_end());
-		chunk->append_other(next);
-		delete_chunk(next);
-		return chunk;
-	}
+	chunk->grow_down(std::min(Config::chunk_grow_size, next->get_start_offset() - chunk->get_end()));
 
 	return 0; 
 }
@@ -189,12 +189,9 @@ Chunk* Buffer::grow_chunk_up(Chunk* chunk)
 		return chunk;
 	}
 
-	if (prev->get_end() + Config::chunk_grow_size > chunk->get_start_offset()) {
-		prev->grow_down(prev->get_start_offset() - chunk->get_start_offset());
-		prev->append_other(chunk);
-		delete_chunk(chunk);
-		return prev;
-	}
+	_chunks.erase(chunk->get_start_offset());
+	chunk->grow_up(std::min(Config::chunk_grow_size, chunk->get_start_offset() - prev->get_end()));
+	_chunks[chunk->get_start_offset()] = chunk;
 
 	return 0;
 }
@@ -235,12 +232,6 @@ Chunk* Buffer::get_next_chunk(Chunk* chunk)
 	}
 
 	return it->second;
-}
-
-void Buffer::delete_chunk(Chunk* chunk)
-{
-	_chunks.erase(chunk->get_start_offset());
-	delete chunk;
 }
 
 std::ostream& operator<<(std::ostream& os, Buffer::iterator& it)

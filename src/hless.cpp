@@ -16,7 +16,10 @@ Hless::Hless(Buffer& buffer)
 	: _buffer(buffer)
 	, _screen(buffer)
 	, _status_bar()
+	, _current(&buffer)
 	, _line_in_current(0)
+	, _cursor(&buffer)
+	, _bottom(&buffer)
 	, _line_in_bottom(0)
 	, _done(false)
 {
@@ -77,7 +80,7 @@ void Hless::run()
 
 Buffer::iterator Hless::closest_line(u64 offset, Buffer::iterator& before_hint, Buffer::iterator& after_hint)
 {
-	Buffer::iterator temp, old_temp;
+	Buffer::iterator temp(&_buffer), old_temp(&_buffer);
 	temp = before_hint;
 	old_temp = Buffer::end();
 
@@ -186,7 +189,7 @@ void Hless::on_next_page(char c)
 	_line_in_current = 0;
 
 	// Now calculating location of the cursor...
-	Buffer::iterator new_bottom;
+	Buffer::iterator new_bottom(&_buffer);
 	u32 line_in_new_bottom;
 
 	_screen.stage_redraw(_current, _line_in_current, new_bottom, line_in_new_bottom);

@@ -24,7 +24,7 @@ $(_TARGET): $(_OBJS)
 $O/%.o: $S/%.cpp
 	@echo [CXX] $@
 	@mkdir -p obj
-	@$(CXX) $(CXXFLAGS) -MM -MD -MF $@.d -MT $@ $<
+	@$(CXX) $(CXXFLAGS) -MM -MF $@.d -MT $@ $<
 	@$(CXX) $(CXXFLAGS) -c $< -o $@
 
 clean:

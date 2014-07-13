@@ -27,19 +27,19 @@ public:
 	class iterator
 	{
 	public:
-		iterator(Buffer& buffer)
+		iterator(Buffer* buffer)
 			: _chunk(0)
 			, _line_index((u64)-1)
 			, _buffer(buffer)
 		{ }
 
-		iterator(iterator& other)
+		iterator(const iterator& other)
 			: _chunk(other._chunk)
 			, _line_index(other._line_index)
 			, _buffer(other._buffer)
 		{ }
 
-		iterator(Chunk* chunk, u64 line_index, Buffer& buffer)
+		iterator(Chunk* chunk, u64 line_index, Buffer* buffer)
 			: _chunk(chunk)
 			, _line_index(line_index)
 			, _buffer(buffer)
@@ -101,10 +101,10 @@ public:
 	private:
 		Chunk* _chunk;
 		s64 _line_index;
-		Buffer& _buffer;
+		Buffer* _buffer;
 	};
 
-	typedef std::map<u64 offset, Chunk*> ChunkList;
+	typedef std::map<u64, Chunk*> ChunkList;
 
 	/**
 	 * Reads specified by iterator line into Line object.
@@ -185,13 +185,6 @@ public:
 	 * @return Chunk* 
 	 */
 	Chunk* get_prev_chunk(const Chunk* chunk);
-
-	/**
-	 * Deletes specified chunk from existance.
-	 * 
-	 * @param chunk 
-	 */
-	void delete_chunk(Chunk* chunk);
 
 private:
 	Readable& _file;
