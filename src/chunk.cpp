@@ -59,6 +59,41 @@ void Chunk::split_lines_reversed(char* buffer, u32 length)
 	_first_line_index += _lines.size() - old_size;
 }
 
+void Chunk::grow_up()
+{
+	grow_up(Config::chunk_grow_size);
+}
+
+void Chunk::grow_up(u64 how_much)
+{
+	Log1("Asked to grow chunk " << this << " up" << " by " << how_much);
+	Log2("Chunk before growing: " << this);
+	if (_start_offset == 0) {
+		Log2("Chunk starts at the beginnig of the file");
+		return;
+	}
+
+	u64 start_from = _start_offset - how_much;
+
+	char buffer[how_much];
+	u32 n = 0;
+	_file.read(how_much, start_from, buffer);
+
+	// Making sure buffer starts at the beginning of the line. If buffer adjacent to end of previous
+	// chunk, then we're ok. Otherwise, we have to find next available end of line and start from it.
+	while ((buffer[n] != '\n') && (n < how_much)) {
+		n++;
+	}
+	n++;
+
+	Log3("Chunk growing by " << how_much << " starting from " << start_from);
+
+	how_much -= n;
+
+	split_lines_reversed(buffer + n, how_much);
+	Log2("Chunk after growing: " << this);
+}
+
 void Chunk::grow_down()
 {
 	grow_down(Config::chunk_grow_size);
@@ -78,12 +113,6 @@ void Chunk::grow_down(u64 how_much)
 	u32 n =_file.read(how_much, _start_offset + _length, buffer);
 	split_lines(buffer, n);
 	Log2("Chunk after growing: " << this);
-}
-
-void Chunk::append_other(Chunk* other)
-{
-	_length += other->_length;
-	_lines.insert(_lines.end(), other._lines.begin(), other._lines.end());
 }
 
 std::ostream& operator<<(std::ostream& os, Chunk& chunk)

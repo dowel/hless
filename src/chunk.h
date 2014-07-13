@@ -30,10 +30,10 @@ public:
 	
 	void split_lines(char* buffer, u32 length);
 	void split_lines_reversed(char* buffer, u32 length);
+	void grow_up();
+	void grow_up(u64 how_much);
 	void grow_down();
 	void grow_down(u64 how_much);
-
-	void append_other(Chunk* other);
 
 	u64 get_absolute_line_index(s64 index) { return index + _first_line_index; }
 	s64 get_first_line_index() { return -_first_line_index; }
