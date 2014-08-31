@@ -27,19 +27,22 @@ public:
 	class iterator
 	{
 	public:
-		iterator()
+		iterator(Buffer* buffer)
 			: _chunk(0)
 			, _line_index((u64)-1)
+			, _buffer(buffer)
 		{ }
 
 		iterator(const iterator& other)
 			: _chunk(other._chunk)
 			, _line_index(other._line_index)
+			, _buffer(other._buffer)
 		{ }
 
-		iterator(Chunk* chunk, u64 line_index)
+		iterator(Chunk* chunk, u64 line_index, Buffer* buffer)
 			: _chunk(chunk)
 			, _line_index(line_index)
+			, _buffer(buffer)
 		{ }
 
 		Chunk* get_chunk()
@@ -98,9 +101,10 @@ public:
 	private:
 		Chunk* _chunk;
 		s64 _line_index;
+		Buffer* _buffer;
 	};
 
-	typedef std::deque<Chunk*> ChunkList;
+	typedef std::map<u64, Chunk*> ChunkList;
 
 	/**
 	 * Reads specified by iterator line into Line object.
@@ -144,6 +148,43 @@ public:
 	 * @return iterator 
 	 */
 	iterator offset(u64 offset);
+
+	/** 
+	 * Grows specified chunk down. If necessary, merges it with next chunk. 
+	 *  
+	 * @param chunk 
+	 *  
+	 * @return Chunk* returns pointer to chunk. 
+	 */
+	Chunk* grow_chunk_down(Chunk* chunk);
+
+	/**
+	 * Grows chunk up. If necessary merges it with previous chunk. Returns chunk that contains whatever 
+	 * input chunk contained. 
+	 * 
+	 * @param chunk 
+	 * 
+	 * @return Chunk* 
+	 */
+	Chunk* grow_chunk_up(Chunk* chunk);
+
+	/**
+	 * Find chunk that follow argument chunk.
+	 * 
+	 * @param chunk 
+	 * 
+	 * @return Chunk* 
+	 */
+	Chunk* get_next_chunk(const Chunk* chunk);
+
+	/**
+	 * Finds chunk that comes before specified chunk.
+	 * 
+	 * @param chunk 
+	 * 
+	 * @return Chunk* 
+	 */
+	Chunk* get_prev_chunk(const Chunk* chunk);
 
 private:
 	Readable& _file;
