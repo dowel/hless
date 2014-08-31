@@ -6,9 +6,9 @@ SRC += messagebox
 O = obj
 S = src
 
-CXX = g++
+CXX = clang++
 CXXFLAGS = -Wall -g
-LIBS = -pthread -lncurses -lboost_regex-mt
+LIBS = -pthread -lncurses -lboost_regex
 LDFLAGS = -rdynamic $(LIBS)
 
 _TARGET = $(TARGET)
@@ -24,7 +24,7 @@ $(_TARGET): $(_OBJS)
 $O/%.o: $S/%.cpp
 	@echo [CXX] $@
 	@mkdir -p obj
-	@$(CXX) $(CXXFLAGS) -MM -MD -MF $@.d -MT $@ $<
+	@$(CXX) $(CXXFLAGS) -MM -MF $@.d -MT $@ $<
 	@$(CXX) $(CXXFLAGS) -c $< -o $@
 
 clean:

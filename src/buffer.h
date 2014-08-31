@@ -32,7 +32,7 @@ public:
 			, _line_index((u64)-1)
 		{ }
 
-		iterator(iterator& other)
+		iterator(const iterator& other)
 			: _chunk(other._chunk)
 			, _line_index(other._line_index)
 		{ }
@@ -137,7 +137,7 @@ public:
 	iterator back();
 
 	/**
-	 * Returns iterator the points to specified offset in the file.
+	 * Returns iterator that points to specified offset in the file.
 	 *  
 	 * @param offset 
 	 * 

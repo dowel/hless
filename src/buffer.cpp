@@ -151,6 +151,9 @@ Buffer::iterator Buffer::back()
 
 Buffer::iterator Buffer::offset(u64 offset)
 {
+	// Going through list of chunks and seeing if our offset is anywhere in one of them...
+	Buffer::iterator it;
+	return it;
 }
 
 std::ostream& operator<<(std::ostream& os, Buffer::iterator& it)
