@@ -1,12 +1,11 @@
 #ifndef __INPUT_H__
 #define __INPUT_H__
 
-#include <boost/function.hpp>
-#include <boost/bind.hpp>
+#include <functional>
 #include <list>
 #include <map>
 
-#define KEY_HANDLER(x) boost::function<void (char)>(boost::bind(&x, this, _1))
+#define KEY_HANDLER(x) std::bind(&x, this, std::placeholders::_1)
 
 class InputProcessor
 {
@@ -14,7 +13,7 @@ public:
 	InputProcessor();
 	~InputProcessor();
 
-	typedef boost::function<void (char)> InputHandler;
+	typedef std::function<void (char)> InputHandler;
 	typedef std::list<int> InputSequence;
 
 	class InputTreeNode
@@ -43,7 +42,7 @@ public:
 		InputProcessor::InputHandler _handler;
 	};
 
-	void register_input_sequence(InputSequence& seq, InputHandler handler);
+	void register_input_sequence(InputSequence&& seq, InputHandler handler);
 	void wait_for_input();
 	static std::string key_name(int ch);
 

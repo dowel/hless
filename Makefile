@@ -1,13 +1,13 @@
 TARGET = hless
 SRC =  main hless file buffer log screen plain_file cache input brush line error
 SRC += meta_line chunk status_bar editbox interruptible progress border asynchronous
-SRC += messagebox
+SRC += messagebox config
 
 O = obj
 S = src
 
 CXX = clang++
-CXXFLAGS = -Wall -g
+CXXFLAGS = -std=c++0x -Wall -g
 LIBS = -pthread -lncurses -lboost_regex
 LDFLAGS = -rdynamic $(LIBS)
 

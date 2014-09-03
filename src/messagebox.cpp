@@ -1,5 +1,4 @@
-#include <boost/assign/list_of.hpp>
-#include <boost/bind.hpp>
+#include <functional>
 
 #include "messagebox.h"
 
@@ -12,8 +11,7 @@ MessageBox::MessageBox(std::string st)
 
 	InputProcessor::InputSequence tmp;
 
-	tmp = boost::assign::list_of(10);
-	_input.register_input_sequence(tmp, KEY_HANDLER(MessageBox::on_enter));
+	_input.register_input_sequence({10}, KEY_HANDLER(MessageBox::on_enter));
 }
 
 void MessageBox::show()

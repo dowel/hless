@@ -1,4 +1,3 @@
-#include <boost/assign/list_of.hpp>
 #include <algorithm>
 
 #include "editbox.h"
@@ -32,26 +31,17 @@ void Editbox::init()
 
 	InputProcessor::InputSequence tmp;
 	for (char a = ' '; a <= '~'; a++) { // this includes most of the printable characters...
-		tmp = boost::assign::list_of(a);
-		_input.register_input_sequence(tmp, KEY_HANDLER(Editbox::on_printable_input));
+		_input.register_input_sequence({a}, KEY_HANDLER(Editbox::on_printable_input));
 	}
 
-	tmp = boost::assign::list_of('\n'); // cariage return...
-	_input.register_input_sequence(tmp, KEY_HANDLER(Editbox::on_enter));
-	tmp = boost::assign::list_of(KEY_BACKSPACE);
-	_input.register_input_sequence(tmp, KEY_HANDLER(Editbox::on_backspace));
-	tmp = boost::assign::list_of(KEY_DC);
-	_input.register_input_sequence(tmp, KEY_HANDLER(Editbox::on_delete));
-	tmp = boost::assign::list_of(KEY_LEFT);
-	_input.register_input_sequence(tmp, KEY_HANDLER(Editbox::on_left));
-	tmp = boost::assign::list_of(KEY_RIGHT);
-	_input.register_input_sequence(tmp, KEY_HANDLER(Editbox::on_right));
-	tmp = boost::assign::list_of(KEY_HOME);
-	_input.register_input_sequence(tmp, KEY_HANDLER(Editbox::on_home));
-	tmp = boost::assign::list_of(KEY_END);
-	_input.register_input_sequence(tmp, KEY_HANDLER(Editbox::on_end));
-	tmp = boost::assign::list_of('\t'); // tab...
-	_input.register_input_sequence(tmp, KEY_HANDLER(Editbox::on_tab));
+	_input.register_input_sequence({'\n'}, KEY_HANDLER(Editbox::on_enter));
+	_input.register_input_sequence({KEY_BACKSPACE}, KEY_HANDLER(Editbox::on_backspace));
+	_input.register_input_sequence({KEY_DC}, KEY_HANDLER(Editbox::on_delete));
+	_input.register_input_sequence({KEY_LEFT}, KEY_HANDLER(Editbox::on_left));
+	_input.register_input_sequence({KEY_RIGHT}, KEY_HANDLER(Editbox::on_right));
+	_input.register_input_sequence({KEY_HOME}, KEY_HANDLER(Editbox::on_home));
+	_input.register_input_sequence({KEY_END}, KEY_HANDLER(Editbox::on_end));
+	_input.register_input_sequence({'\t'}, KEY_HANDLER(Editbox::on_tab));
 
 	recalc_prompt();
 }

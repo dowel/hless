@@ -140,27 +140,49 @@ Buffer::iterator Buffer::begin()
 
 Buffer::iterator Buffer::back()
 {
-	// First, checking if last chunk in the chunk dequeu is reasonably close to the end of the buffer.
-	Chunk* chunk = _chunks.back();
-	if (_file.get_size() - chunk->get_end() < Config::chunk_grow_size) {
-		chunk->grow_down();
+	bool add_chunk = false;
+	Chunk* chunk = 0;
+	if (_chunks.size() == 0) {
+		add_chunk = true;
 	} else {
-		chunk = new Chunk("100%", _file, _chunks.size(), _file.get_size(), 0, _chunks.back());
-		grow_chunk_up(chunk);
-		_chunks[chunk->get_start_offset()] = chunk;
-		_chunks.push_back(chunk);
+		chunk = _chunks.rbegin()->second;
+		Log3("Last chunk is " << chunk << ". File's end " << _file.get_size());
+		if (_file.get_size() - chunk->get_end() < Config::chunk_grow_size) {
+			add_chunk = true;
+		}
 	}
 
-	iterator it(chunk, chunk->get_last_line_index(), _buffer);
-	Log2("Returning last line in the buffer " << it);
-	return it;
+	if (!add_chunk) {
+		chunk->grow_down();
+	} else {
+		chunk = new Chunk("100%", _file, _file.get_size());
+		grow_chunk_up(chunk);
+		_chunks[chunk->get_start_offset()] = chunk;
+	}
+
+	iterator new_it(chunk, chunk->get_last_line_index(), this);
+	Log2("Returning last line in the buffer " << new_it);
+	return new_it;
 }
 
 Buffer::iterator Buffer::offset(u64 offset)
 {
-	// Going through list of chunks and seeing if our offset is anywhere in one of them...
-	Buffer::iterator it;
-	return it;
+//	bool new_chunk = false;
+//	Chunk* chunk;
+//
+//	ChunkList::iterator it = _chunks.lower_bound(offset);
+//	if (it == _chunks.end()) {
+//		if (offset > Config::chunk_grow_size) {
+//			u64 temp_offset = offset - Config::chunk_grow_size;
+//			it = _chunks.lower_bound(temp_offset);
+//		} else {
+//
+//		}
+//	}
+//
+//	iterator it(chunk, chunk->)
+	// TODO: finish this
+	return iterator(0, 0, 0);
 }
 
 Chunk* Buffer::grow_chunk_down(Chunk* chunk)
@@ -199,7 +221,7 @@ Chunk* Buffer::grow_chunk_up(Chunk* chunk)
 	return 0;
 }
 
-Chunk* Buffer::get_prev_chunk(Chunk* chunk)
+Chunk* Buffer::get_prev_chunk(const Chunk* chunk)
 {
 	if (chunk == 0) {
 		return 0;
@@ -218,7 +240,7 @@ Chunk* Buffer::get_prev_chunk(Chunk* chunk)
 	return it->second;
 }
 
-Chunk* Buffer::get_next_chunk(Chunk* chunk)
+Chunk* Buffer::get_next_chunk(const Chunk* chunk)
 {
 	if (chunk == 0) {
 		return 0;

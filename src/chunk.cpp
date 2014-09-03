@@ -1,23 +1,24 @@
+#include <algorithm>
+
 #include "chunk.h"
 #include "log.h"
 #include "config.h"
 
 static __attribute__((unused)) const char* MODULE_NAME = "chunk";
 
-Chunk::Chunk(std::string name, Readable& file, u32 chunk_index, u64 start, Chunk* next, Chunk* prev)
+Chunk::Chunk(std::string name, Readable& file, u64 start)
 	: _name(name)
 	, _file(file)
 	, _start_offset(start)
 	, _length(0)
 	, _first_line_index(0)
 {
-	if (_next) {
-		_next->_prev = this;
-	}
+}
 
-	if (_prev) {
-		_prev->_next = this;
-	}
+u64 Chunk::get_index_at_offset(u64 offset)
+{
+	// TODO: finish this
+	return 0;
 }
 
 void Chunk::split_lines(char* buffer, u32 length)

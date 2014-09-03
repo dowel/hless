@@ -1,4 +1,3 @@
-#include <boost/assign/list_of.hpp>
 #include <boost/bind.hpp>
 #include <boost/regex.hpp>
 #include <boost/lexical_cast.hpp>
@@ -34,25 +33,15 @@ void Hless::run()
 {
 	InputProcessor::InputSequence tmp;
 
-	tmp = boost::assign::list_of('q');
-	_input.register_input_sequence(tmp, KEY_HANDLER(Hless::on_quit_key));
-	tmp = boost::assign::list_of(KEY_DOWN);
-	_input.register_input_sequence(tmp, KEY_HANDLER(Hless::on_down_key));
-	tmp = boost::assign::list_of(KEY_UP);
-	_input.register_input_sequence(tmp, KEY_HANDLER(Hless::on_up_key));
-	tmp = boost::assign::list_of(KEY_NPAGE);
-	_input.register_input_sequence(tmp, KEY_HANDLER(Hless::on_next_page));
-	tmp = boost::assign::list_of(KEY_PPAGE);
-	_input.register_input_sequence(tmp, KEY_HANDLER(Hless::on_prev_page));
-	tmp = boost::assign::list_of('G');
-	_input.register_input_sequence(tmp, KEY_HANDLER(Hless::on_goto_end));
-	tmp = boost::assign::list_of(':');
-	_input.register_input_sequence(tmp, KEY_HANDLER(Hless::on_goto));
-	tmp = boost::assign::list_of('g');
-	_input.register_input_sequence(tmp, KEY_HANDLER(Hless::on_goto_beginning));
-
-	tmp = boost::assign::list_of('D');
-	_input.register_input_sequence(tmp, KEY_HANDLER(Hless::on_debug));
+	_input.register_input_sequence({'q'}, KEY_HANDLER(Hless::on_quit_key));
+	_input.register_input_sequence({KEY_DOWN}, KEY_HANDLER(Hless::on_down_key));
+	_input.register_input_sequence({KEY_UP}, KEY_HANDLER(Hless::on_up_key));
+	_input.register_input_sequence({KEY_NPAGE}, KEY_HANDLER(Hless::on_next_page));
+	_input.register_input_sequence({KEY_PPAGE}, KEY_HANDLER(Hless::on_prev_page));
+	_input.register_input_sequence({'G'}, KEY_HANDLER(Hless::on_goto_end));
+	_input.register_input_sequence({':'}, KEY_HANDLER(Hless::on_goto));
+	_input.register_input_sequence({'g'}, KEY_HANDLER(Hless::on_goto_beginning));
+	_input.register_input_sequence({'D'}, KEY_HANDLER(Hless::on_debug));
 
 	_current = _buffer.begin();
 	_cursor = _current;
@@ -245,7 +234,7 @@ void Hless::on_goto_end(char c)
 
 void Hless::on_goto(char c)
 {
-	Editbox::ModesList modes = boost::assign::list_of(std::string("line"))(std::string("offset"));
+	Editbox::ModesList modes = {"line", "offset"};
 	Editbox ed("Go to", modes);
 	std::string spec = ed.run();
 	Log1("Asked to go to " << spec << " in mode " << ed.get_mode());

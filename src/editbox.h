@@ -2,7 +2,6 @@
 #define __EDITBOX_H__
 
 #include <string>
-#include <boost/shared_array.hpp>
 
 #include "brush.h"
 #include "size_aware.h"

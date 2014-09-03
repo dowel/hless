@@ -23,10 +23,11 @@ public:
 		  u64 start);
 
 	MetaLine& get_line(s64 index) { return _lines.at(index + _first_line_index); }
-	u64 get_lines_count() { return _lines.size(); }
-	u64 get_length() { return _length; }
-	u64 get_start_offset() { return _start_offset; }
-	u64 get_end() { return _start_offset + _length; }
+	u64 get_lines_count() const { return _lines.size(); }
+	u64 get_length() const { return _length; }
+	u64 get_start_offset() const { return _start_offset; }
+	u64 get_end() const { return _start_offset + _length; }
+	u64 get_index_at_offset(u64 offset);
 	
 	void split_lines(char* buffer, u32 length);
 	void split_lines_reversed(char* buffer, u32 length);

@@ -18,7 +18,7 @@ InputProcessor::~InputProcessor()
 
 }
 
-void InputProcessor::register_input_sequence(InputSequence& seq, InputHandler handler)
+void InputProcessor::register_input_sequence(InputSequence&& seq, InputHandler handler)
 {
 	Log1("Asked to register key sequence: " << seq);
 
