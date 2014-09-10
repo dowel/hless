@@ -13,6 +13,7 @@ Chunk::Chunk(std::string name, Readable& file, u64 start)
 	, _length(0)
 	, _first_line_index(0)
 {
+	Log1("Creating new chunk " << name << " at offset " << start);
 }
 
 u64 Chunk::get_index_at_offset(u64 offset)

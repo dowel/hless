@@ -147,7 +147,7 @@ Buffer::iterator Buffer::back()
 	} else {
 		chunk = _chunks.rbegin()->second;
 		Log3("Last chunk is " << chunk << ". File's end " << _file.get_size());
-		if (_file.get_size() - chunk->get_end() < Config::chunk_grow_size) {
+		if (_file.get_size() - chunk->get_end() >= Config::chunk_grow_size) {
 			add_chunk = true;
 		}
 	}
@@ -192,14 +192,14 @@ Chunk* Buffer::grow_chunk_down(Chunk* chunk)
 	}
 
 	Chunk* next = get_next_chunk(chunk);
-	if (next == 0) {
+	if (next == 0 || (next->get_start_offset() - chunk->get_end() > Config::chunk_grow_size)) {
 		chunk->grow_down();
 		return chunk;
 	}
 
 	chunk->grow_down(std::min(Config::chunk_grow_size, next->get_start_offset() - chunk->get_end()));
 
-	return 0; 
+	return chunk; 
 }
 
 Chunk* Buffer::grow_chunk_up(Chunk* chunk)
@@ -209,7 +209,7 @@ Chunk* Buffer::grow_chunk_up(Chunk* chunk)
 	}
 
 	Chunk* prev = get_prev_chunk(chunk);
-	if (prev == 0) {
+	if (prev == 0 || (chunk->get_start_offset() - prev->get_end() > Config::chunk_grow_size)) {
 		chunk->grow_up();
 		return chunk;
 	}
@@ -218,7 +218,7 @@ Chunk* Buffer::grow_chunk_up(Chunk* chunk)
 	chunk->grow_up(std::min(Config::chunk_grow_size, chunk->get_start_offset() - prev->get_end()));
 	_chunks[chunk->get_start_offset()] = chunk;
 
-	return 0;
+	return chunk;
 }
 
 Chunk* Buffer::get_prev_chunk(const Chunk* chunk)
