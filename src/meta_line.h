@@ -19,8 +19,9 @@ public:
 		, _length(length)
 	{ }
 
-	u64 get_offset() { return _offset; }
-	u64 get_length() { return _length; }
+	u64 get_offset() const { return _offset; }
+	u64 get_length() const { return _length; }
+	u64 get_end() const { return _offset + _length; }
 
 private:
 	u64 _offset;
