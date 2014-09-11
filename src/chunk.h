@@ -18,7 +18,7 @@
 class Chunk
 {
 public:
-	Chunk(std::string name, 
+	Chunk(const std::string& name, 
 		  Readable& file,
 		  u64 start);
 
@@ -27,7 +27,7 @@ public:
 	u64 get_length() const { return _length; }
 	u64 get_start_offset() const { return _start_offset; }
 	u64 get_end() const { return _start_offset + _length; }
-	u64 get_index_at_offset(u64 offset);
+	s64 get_index_at_offset(u64 offset);
 	
 	void split_lines(char* buffer, u32 length);
 	void split_lines_reversed(char* buffer, u32 length);

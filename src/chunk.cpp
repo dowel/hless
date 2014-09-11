@@ -6,7 +6,7 @@
 
 static __attribute__((unused)) const char* MODULE_NAME = "chunk";
 
-Chunk::Chunk(std::string name, Readable& file, u64 start)
+Chunk::Chunk(const std::string& name, Readable& file, u64 start)
 	: _name(name)
 	, _file(file)
 	, _start_offset(start)
@@ -16,10 +16,19 @@ Chunk::Chunk(std::string name, Readable& file, u64 start)
 	Log1("Creating new chunk " << name << " at offset " << start);
 }
 
-u64 Chunk::get_index_at_offset(u64 offset)
+s64 Chunk::get_index_at_offset(u64 offset)
 {
-	// TODO: finish this
-	return 0;
+	s64 index = 0;
+	auto it = std::find_if(_lines.begin(), _lines.end(), [&offset, &index](const MetaLine& ml) -> bool 
+	{
+		index++;
+		return (ml.get_offset() <= offset) && (offset < ml.get_end());
+	});
+
+	if (it != _lines.end()) {
+		return _first_line_index + index;
+	}
+	return _first_line_index;
 }
 
 void Chunk::split_lines(char* buffer, u32 length)

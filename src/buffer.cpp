@@ -167,22 +167,68 @@ Buffer::iterator Buffer::back()
 
 Buffer::iterator Buffer::offset(u64 offset)
 {
-//	bool new_chunk = false;
-//	Chunk* chunk;
-//
-//	ChunkList::iterator it = _chunks.lower_bound(offset);
-//	if (it == _chunks.end()) {
-//		if (offset > Config::chunk_grow_size) {
-//			u64 temp_offset = offset - Config::chunk_grow_size;
-//			it = _chunks.lower_bound(temp_offset);
-//		} else {
-//
-//		}
-//	}
-//
-//	iterator it(chunk, chunk->)
-	// TODO: finish this
-	return iterator(0, 0, 0);
+	Log1("Asked to return iterator at offset " << offset);
+
+	Chunk* chunk;
+	s64 index = 0;
+
+	// First we check if there is chunk that contains specified offset.
+	auto it = std::find_if(_chunks.begin(), _chunks.end(), 
+		[&offset](const std::pair<u64, Chunk*>& p) -> bool 
+	{ 
+		return (p.first <= offset) && (offset < p.second->get_end()); 
+	});
+
+	if (it != _chunks.end()) {
+		index = it->second->get_index_at_offset(offset);
+		Log1("Returning chunk " << it->second << ", index " << index);
+		return iterator(it->second, index, this);
+	} else {
+		Log2("Did not find chunk. Trying chunk that can grow.");
+	}
+
+	// Now check if we have a chunk that we can grow either up or down.
+	it = std::find_if(_chunks.begin(), _chunks.end(), 
+		[&offset](const std::pair<u64, Chunk*>& p) -> bool 
+	{ 
+		u64 inf, sup;
+		if (p.first > Config::chunk_grow_size) {
+			inf = p.first - Config::chunk_grow_size;
+		} else {
+			inf = 0;
+		}
+
+		sup = offset + Config::chunk_grow_size;
+
+		return (inf <= offset) && (offset < sup);
+	});
+
+	if (it != _chunks.end()) {
+		if (offset < it->first) {
+			Log1("Growing chunk up");
+			grow_chunk_up(it->second);
+		} else {
+			Log1("Growing chunk down");
+			grow_chunk_down(it->second);
+		}
+
+		index = it->second->get_index_at_offset(offset);
+		Log1("Returning chunk " << *it->second << ", index " << index);
+		return iterator(it->second, index, this);
+	} else {
+		Log2("Did not find chunk that can grow. Creating new chunk.");
+	}
+
+	// Create new chunk.
+	chunk = new Chunk(STR("@" << offset), _file, offset - (Config::chunk_grow_size / 2)); 
+	grow_chunk_down(chunk);
+	_chunks[chunk->get_start_offset()] = chunk;
+
+	Log1("Created new chunk " << chunk);
+
+	index = it->second->get_index_at_offset(offset);
+	Log1("Returning chunk " << *it->second << ", index " << index);
+	return iterator(it->second, index, this);
 }
 
 Chunk* Buffer::grow_chunk_down(Chunk* chunk)
