@@ -10,7 +10,6 @@ std::ostream& operator<<(std::ostream& os, const Backtrace& bt)
 		os << bt._ptrs[i] << " ";
 	}
 
-	os << std::endl;
 	os << std::dec << std::noshowbase;
 	return os;
 }
