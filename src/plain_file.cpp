@@ -42,6 +42,7 @@ u32 PlainFile::read(u32 how_much, u64 offset, char* buffer)
 	if (n <= 0) {
 		std::ostringstream os;
 		os << "pread() returned " << n << ". errno set to " << errno;
+		os << "; attempted to read " << how_much << " bytes from offset " << offset;
 		throw Exception(os.str());
 	}
 

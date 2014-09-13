@@ -31,8 +31,8 @@ public:
 	
 	void split_lines(char* buffer, u32 length);
 	void split_lines_reversed(char* buffer, u32 length);
-	void grow_up();
-	void grow_up(u64 how_much);
+	void grow_up(bool eol_aligned);
+	void grow_up(u64 how_much, bool eol_aligned);
 	void grow_down();
 	void grow_down(u64 how_much);
 
@@ -46,6 +46,8 @@ public:
 
 	friend std::ostream& operator<<(std::ostream& os, Chunk& chunk);
 	friend std::ostream& operator<<(std::ostream& os, Chunk* chunk);
+	friend std::ostream& operator<<(std::ostream& os, const Chunk& chunk);
+	friend std::ostream& operator<<(std::ostream& os, const Chunk* chunk);
 
 private:
 	std::string _name;
