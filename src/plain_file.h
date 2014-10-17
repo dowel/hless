@@ -8,7 +8,7 @@ class PlainFile : public File
 {
 public:
 	PlainFile();
-	~PlainFile();
+	virtual ~PlainFile();
 
 	virtual void open(std::string filename);
 	virtual void close();

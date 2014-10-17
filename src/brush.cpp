@@ -11,6 +11,8 @@ Color* Brush::progress_done_color = 0;
 Color* Brush::progress_remains_color = 0;
 Color* Brush::active_button_color = 0;
 
+Brush::MarkColors Brush::marks(3);
+
 u32 Color::_last_pair = 1;
 
 void Brush::init_colors()
@@ -22,6 +24,10 @@ void Brush::init_colors()
 	Brush::progress_done_color = new Color("progress bar color", Color::BLACK, Color::YELLOW);
 	Brush::progress_remains_color = new Color("progress bar color", Color::WHITE, Color::BLACK);
 	Brush::active_button_color = new Color("button color", Color::BLACK, Color::YELLOW);
+
+	Brush::marks[0] = new Color("mark1 color", Color::WHITE, Color::BLUE);
+	Brush::marks[1] = new Color("mark2 color", Color::WHITE, Color::RED);
+	Brush::marks[2] = new Color("mark3 color", Color::WHITE, Color::GREEN);
 }
 
 Color::Color(std::string name)

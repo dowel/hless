@@ -5,11 +5,12 @@
 #include "buffer.h"
 #include "brush.h"
 #include "status_bar.h"
+#include "mark.h"
 
 class Screen : public SizeAware
 {
 public:
-	Screen(Buffer& buffer);
+	Screen(Buffer& buffer, Marks& _marks);
 	~Screen();
 
 	/**
@@ -89,6 +90,7 @@ public:
 private:
 	Brush _brush;
 	Buffer& _buffer;
+	Marks& _marks;
 };
 
 #endif

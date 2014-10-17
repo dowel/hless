@@ -28,7 +28,7 @@ typedef std::list<boost::shared_ptr<Line> > LineList;
 class Line
 {
 public:
-	Line() : _length(0) { }
+	Line() : _length(0), _temp_line(0) { }
 	Line(char* str);
 	Line(const char* str);
 	Line(char* str, u32 length);

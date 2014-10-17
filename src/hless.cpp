@@ -13,7 +13,7 @@ static __attribute__((unused)) const char* MODULE_NAME = "hless";
 
 Hless::Hless(Buffer& buffer)
 	: _buffer(buffer)
-	, _screen(buffer)
+	, _screen(buffer, _marks)
 	, _status_bar()
 	, _current(&buffer)
 	, _line_in_current(0)
@@ -41,6 +41,8 @@ void Hless::run()
 	_input.register_input_sequence({'G'}, KEY_HANDLER(Hless::on_goto_end));
 	_input.register_input_sequence({':'}, KEY_HANDLER(Hless::on_goto));
 	_input.register_input_sequence({'g'}, KEY_HANDLER(Hless::on_goto_beginning));
+	_input.register_input_sequence({' '}, KEY_HANDLER(Hless::on_space));
+
 	_input.register_input_sequence({'D'}, KEY_HANDLER(Hless::on_debug));
 
 	_current = _buffer.begin();
@@ -260,6 +262,8 @@ class SampleProgressing : public Progressing
 public:
 	SampleProgressing() : _progress(0) { }
 
+	virtual ~SampleProgressing() { }
+
 	virtual float progress() {
 		return float(_progress);
 	}
@@ -287,5 +291,19 @@ void Hless::on_goto_beginning(char c)
 	_cursor = _buffer.begin();
 	_current = _cursor;
 	_line_in_current = 0;
+}
+
+void Hless::on_space(char c)
+{
+	Marks::iterator mark = _marks.find(Mark(_cursor));
+	if (mark == _marks.end()) {
+		_marks.insert(Mark(_cursor));
+	} else {
+		if (mark->get_color_index() == Brush::marks.size() - 1) {
+			_marks.erase(Mark(_cursor));
+		} else {
+			mark->next_color();
+		}
+	}
 }
 

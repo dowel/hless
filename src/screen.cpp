@@ -5,8 +5,9 @@
 
 static __attribute__((unused)) const char* MODULE_NAME = "screen";
 
-Screen::Screen(Buffer& buffer)
+Screen::Screen(Buffer& buffer, Marks& marks)
 	: _buffer(buffer)
+	, _marks(marks)
 {
 	initscr();
 	start_color();
@@ -64,7 +65,12 @@ void Screen::redraw(Buffer::iterator& in_current,
 			if (current == cursor) {
 				_brush.draw_line(n, *it->get(), Brush::cursor_color);
 			} else {
-				_brush.draw_line(n, *it->get());
+				Marks::iterator mit = _marks.find(Mark(current));
+				if (mit != _marks.end()) {
+					_brush.draw_line(n, *it->get(), mit->color());
+				} else {
+					_brush.draw_line(n, *it->get());
+				}
 			}
 		}
 		if (line_in_bottom >= 1) {

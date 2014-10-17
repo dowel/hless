@@ -2,143 +2,279 @@
 <Project
 	Version="10.0"
 	VendorName="SlickEdit"
-	WorkingDir=".">
+	TemplateName="Clang++"
+	WorkingDir="."
+	BuildSystem="vsbuild">
 	<Config
 		Name="Debug"
-		Type="cpp"
+		Type="gnuc"
 		DebugCallbackName="gdb"
+		Version="1"
 		OutputFile="%bdhless"
-		CompilerConfigName="Default Compiler">
+		CompilerConfigName="Latest Version">
 		<Menu>
 			<Target
 				Name="Compile"
 				MenuCaption="&amp;Compile"
+				Dialog="_gnuc_options_form Compile"
 				CaptureOutputWith="ProcessBuffer"
+				Deletable="0"
 				OutputExts="*.o"
 				SaveOption="SaveCurrent"
 				RunFromDir="%rw">
-				<Exec CmdLine='cc -c -g %i %defd -o "%bd%n.o" "%f"'/>
+				<Exec CmdLine='clang++ -c %xup  %defd -g -o "%bd%n%oe" %i "%f"'/>
 			</Target>
 			<Target
 				Name="Link"
-				MenuCaption="&amp;Link">
-				<Exec CmdLine='cc -g -o "%o" %f %libs'/>
+				MenuCaption="&amp;Link"
+				ShowOnMenu="Never"
+				Dialog="_gnuc_options_form Link"
+				CaptureOutputWith="ProcessBuffer"
+				Deletable="0"
+				SaveOption="SaveCurrent"
+				RunFromDir="%rw">
+				<Exec CmdLine='clang++ %xup -g -o "%o" %f %libs'/>
 			</Target>
 			<Target
 				Name="Build"
 				MenuCaption="&amp;Build"
+				Dialog="_gnuc_options_form Compile"
 				CaptureOutputWith="ProcessBuffer"
+				Deletable="0"
 				SaveOption="SaveWorkspaceFiles"
 				RunFromDir="%rw">
-				<Exec CmdLine='"%(VSLICKBIN1)vsbuild" build "%w" "%r"'/>
+				<Exec CmdLine='"%(VSLICKBIN1)vsbuild" "%w" "%r" -t build'/>
 			</Target>
 			<Target
 				Name="Rebuild"
 				MenuCaption="&amp;Rebuild"
+				Dialog="_gnuc_options_form Compile"
 				CaptureOutputWith="ProcessBuffer"
+				Deletable="0"
 				SaveOption="SaveWorkspaceFiles"
 				RunFromDir="%rw">
-				<Exec CmdLine='"%(VSLICKBIN1)vsbuild" rebuild "%w" "%r"'/>
+				<Exec CmdLine='"%(VSLICKBIN1)vsbuild" "%w" "%r" -t rebuild'/>
 			</Target>
 			<Target
 				Name="Debug"
 				MenuCaption="&amp;Debug"
-				SaveOption="SaveNone"
+				Dialog="_gnuc_options_form Run/Debug"
 				BuildFirst="1"
 				CaptureOutputWith="ProcessBuffer"
+				Deletable="0"
+				SaveOption="SaveNone"
 				RunFromDir="%rw">
 				<Exec CmdLine='vsdebugio -prog "%o"'/>
 			</Target>
 			<Target
 				Name="Execute"
 				MenuCaption="E&amp;xecute"
-				SaveOption="SaveNone"
+				Dialog="_gnuc_options_form Run/Debug"
 				BuildFirst="1"
 				CaptureOutputWith="ProcessBuffer"
+				Deletable="0"
+				SaveOption="SaveWorkspaceFiles"
 				RunFromDir="%rw">
 				<Exec CmdLine='"%o"'/>
 			</Target>
+			<Target
+				Name="dash"
+				MenuCaption="-"
+				Deletable="0">
+				<Exec/>
+			</Target>
+			<Target
+				Name="Clang Options"
+				MenuCaption="Clang &amp;Options..."
+				ShowOnMenu="HideIfNoCmdLine"
+				Deletable="0"
+				SaveOption="SaveNone">
+				<Exec
+					CmdLine="clangoptions"
+					Type="Slick-C"/>
+			</Target>
 		</Menu>
-		<Includes>
-			<Include Dir="&lt;double click here to add another entry&gt;"/>
-		</Includes>
+		<List Name="GNUC Options">
+			<Item
+				Name="LinkerOutputType"
+				Value="Executable"/>
+		</List>
 	</Config>
 	<Config
 		Name="Release"
-		Type="cpp"
+		Type="gnuc"
 		DebugCallbackName="gdb"
+		Version="1"
 		OutputFile="%bdhless"
-		CompilerConfigName="Default Compiler">
+		CompilerConfigName="Latest Version">
 		<Menu>
 			<Target
 				Name="Compile"
 				MenuCaption="&amp;Compile"
+				Dialog="_gnuc_options_form Compile"
 				CaptureOutputWith="ProcessBuffer"
-				SaveOption="SaveCurrent"
+				Deletable="0"
 				OutputExts="*.o"
+				SaveOption="SaveCurrent"
 				RunFromDir="%rw">
-				<Exec CmdLine='cc -c -O %i %defd -o "%bd%n.o" "%f"'/>
+				<Exec CmdLine='clang++ -c %xup %defd -o "%bd%n%oe" %i "%f"'/>
 			</Target>
 			<Target
 				Name="Link"
-				MenuCaption="&amp;Link">
-				<Exec CmdLine='cc -O -o "%o" %f %libs'/>
+				MenuCaption="&amp;Link"
+				ShowOnMenu="Never"
+				Dialog="_gnuc_options_form Link"
+				CaptureOutputWith="ProcessBuffer"
+				Deletable="0"
+				SaveOption="SaveCurrent"
+				RunFromDir="%rw">
+				<Exec CmdLine='clang++ %xup -o "%o" %f %libs'/>
 			</Target>
 			<Target
 				Name="Build"
 				MenuCaption="&amp;Build"
+				Dialog="_gnuc_options_form Compile"
 				CaptureOutputWith="ProcessBuffer"
+				Deletable="0"
 				SaveOption="SaveWorkspaceFiles"
 				RunFromDir="%rw">
-				<Exec CmdLine='"%(VSLICKBIN1)vsbuild" build "%w" "%r"'/>
+				<Exec CmdLine='"%(VSLICKBIN1)vsbuild" "%w" "%r" -t build'/>
 			</Target>
 			<Target
 				Name="Rebuild"
 				MenuCaption="&amp;Rebuild"
+				Dialog="_gnuc_options_form Compile"
 				CaptureOutputWith="ProcessBuffer"
+				Deletable="0"
 				SaveOption="SaveWorkspaceFiles"
 				RunFromDir="%rw">
-				<Exec CmdLine='"%(VSLICKBIN1)vsbuild" rebuild "%w" "%r"'/>
+				<Exec CmdLine='"%(VSLICKBIN1)vsbuild" "%w" "%r" -t rebuild'/>
 			</Target>
 			<Target
 				Name="Debug"
 				MenuCaption="&amp;Debug"
-				SaveOption="SaveNone"
+				Dialog="_gnuc_options_form Run/Debug"
 				BuildFirst="1"
 				CaptureOutputWith="ProcessBuffer"
+				Deletable="0"
+				SaveOption="SaveNone"
 				RunFromDir="%rw">
 				<Exec CmdLine='vsdebugio -prog "%o"'/>
 			</Target>
 			<Target
 				Name="Execute"
 				MenuCaption="E&amp;xecute"
-				SaveOption="SaveNone"
+				Dialog="_gnuc_options_form Run/Debug"
 				BuildFirst="1"
 				CaptureOutputWith="ProcessBuffer"
+				Deletable="0"
+				SaveOption="SaveWorkspaceFiles"
 				RunFromDir="%rw">
 				<Exec CmdLine='"%o"'/>
 			</Target>
+			<Target
+				Name="dash"
+				MenuCaption="-"
+				Deletable="0">
+				<Exec/>
+			</Target>
+			<Target
+				Name="Clang Options"
+				MenuCaption="Clang &amp;Options..."
+				ShowOnMenu="HideIfNoCmdLine"
+				Deletable="0"
+				SaveOption="SaveNone">
+				<Exec
+					CmdLine="clangoptions"
+					Type="Slick-C"/>
+			</Target>
 		</Menu>
-		<Includes>
-			<Include Dir="&lt;double click here to add another entry&gt;"/>
-		</Includes>
+		<List Name="GNUC Options">
+			<Item
+				Name="LinkerOutputType"
+				Value="Executable"/>
+		</List>
 	</Config>
-	<Rules Name="Compile">
-		<Rule
-			InputExts="*.s"
-			OutputExts="*.o"
-			LinkObject="1">
-			<Exec CmdLine='as -o "%bd%n.o" "%f"'/>
-		</Rule>
-	</Rules>
-	<CustomFolders>
+	<Files>
 		<Folder
 			Name="Source Files"
-			Filters="*.c;*.C;*.cc;*.cpp;*.cp;*.cxx;*.c++;*.prg;*.pas;*.dpr;*.asm;*.s;*.bas;*.java;*.cs;*.sc;*.e;*.cob;*.html;*.rc;*.tcl;*.py;*.pl;*.d">
+			Filters="*.c;*.C;*.cc;*.cpp;*.cp;*.cxx;*.c++;*.prg;*.pas;*.dpr;*.asm;*.s;*.bas;*.java;*.cs;*.sc;*.e;*.cob;*.html;*.rc;*.tcl;*.py;*.pl;*.d;*.m;*.mm;*.go">
+			<F N="py_hless/auxilary/array_array.py"/>
+			<F N="src/asynchronous.cpp"/>
+			<F N="py_hless/auxilary/bisect_search.py"/>
+			<F N="src/border.cpp"/>
+			<F N="src/brush.cpp"/>
+			<F N="src/buffer.cpp"/>
+			<F N="src/cache.cpp"/>
+			<F N="py_hless/ccurs/ccurs.cpp"/>
+			<F N="src/chunk.cpp"/>
+			<F N="py_hless/auxilary/colors.py"/>
+			<F N="py_hless/curs/colors.py"/>
+			<F N="py_hless/auxilary/comp.py"/>
+			<F N="src/config.cpp"/>
+			<F N="py_hless/auxilary/create_rotating_log.py"/>
+			<F N="py_hless/curs/create_rotating_log.py"/>
+			<F N="py_hless/curs/curs.py"/>
+			<F N="src/editbox.cpp"/>
+			<F N="src/error.cpp"/>
+			<F N="src/file.cpp"/>
+			<F N="py_hless/io/gzipped.py"/>
+			<F N="py_hless/io/gzipped_buff.py"/>
+			<F N="py_hless/io/gzipped_just_read.py"/>
+			<F N="py_hless/io/gzipped_read_by_chunks.py"/>
+			<F N="py_hless/io/gzipped_read_threaded.py"/>
+			<F N="src/hless.cpp"/>
+			<F N="src/input.cpp"/>
+			<F N="src/interruptible.cpp"/>
+			<F N="py_hless/curs/keys.py"/>
+			<F N="src/line.cpp"/>
+			<F N="py_hless/io/lines.py"/>
+			<F N="py_hless/auxilary/lines_search.py"/>
+			<F N="src/log.cpp"/>
+			<F N="src/main.cpp"/>
+			<F N="src/mark.cpp"/>
+			<F N="src/messagebox.cpp"/>
+			<F N="src/meta_line.cpp"/>
+			<F N="py_hless/io/mmapio.py"/>
+			<F N="py_hless/auxilary/num_array.py"/>
+			<F N="src/plain_file.cpp"/>
+			<F N="src/progress.cpp"/>
+			<F N="src/screen.cpp"/>
+			<F N="src/status_bar.cpp"/>
+			<F N="py_hless/io/stringio.py"/>
+			<F N="py_hless/auxilary/tail-f.py"/>
 		</Folder>
 		<Folder
 			Name="Header Files"
 			Filters="*.h;*.H;*.hh;*.hpp;*.hxx;*.inc;*.sh;*.cpy;*.if">
+			<F N="src/asynchronous.h"/>
+			<F N="src/border.h"/>
+			<F N="src/brush.h"/>
+			<F N="src/buffer.h"/>
+			<F N="src/cache.h"/>
+			<F N="src/chunk.h"/>
+			<F N="src/config.h"/>
+			<F N="py_hless/debug.sh"/>
+			<F N="src/editbox.h"/>
+			<F N="src/error.h"/>
+			<F N="src/file.h"/>
+			<F N="src/hless.h"/>
+			<F N="src/input.h"/>
+			<F N="src/interruptible.h"/>
+			<F N="src/line.h"/>
+			<F N="src/log.h"/>
+			<F N="py_hless/makeman.sh"/>
+			<F N="src/mark.h"/>
+			<F N="src/messagebox.h"/>
+			<F N="src/meta_line.h"/>
+			<F N="py_hless/auxilary/nightly_commit.sh"/>
+			<F N="src/plain_file.h"/>
+			<F N="src/progress.h"/>
+			<F N="src/readable.h"/>
+			<F N="src/screen.h"/>
+			<F N="src/size_aware.h"/>
+			<F N="src/status_bar.h"/>
+			<F N="src/types.h"/>
 		</Folder>
 		<Folder
 			Name="Resource Files"
@@ -149,97 +285,12 @@
 		<Folder
 			Name="Other Files"
 			Filters="">
-		</Folder>
-	</CustomFolders>
-	<Files AutoFolders="DirectoryView">
-		<Folder Name="py_hless">
-			<Folder Name="auxilary">
-				<F N="py_hless/auxilary/array_array.py"/>
-				<F N="py_hless/auxilary/bisect_search.py"/>
-				<F N="py_hless/auxilary/colors.py"/>
-				<F N="py_hless/auxilary/comp.py"/>
-				<F N="py_hless/auxilary/create_rotating_log.py"/>
-				<F N="py_hless/auxilary/lines_search.py"/>
-				<F N="py_hless/auxilary/nightly_commit.sh"/>
-				<F N="py_hless/auxilary/num_array.py"/>
-				<F N="py_hless/auxilary/tail-f.py"/>
-			</Folder>
-			<Folder Name="ccurs">
-				<F N="py_hless/ccurs/ccurs.cpp"/>
-			</Folder>
-			<Folder Name="curs">
-				<F N="py_hless/curs/colors.py"/>
-				<F N="py_hless/curs/create_rotating_log.py"/>
-				<F N="py_hless/curs/curs.py"/>
-				<F N="py_hless/curs/keys.py"/>
-			</Folder>
-			<Folder Name="io">
-				<F N="py_hless/io/gzipped.py"/>
-				<F N="py_hless/io/gzipped_buff.py"/>
-				<F N="py_hless/io/gzipped_just_read.py"/>
-				<F N="py_hless/io/gzipped_read_by_chunks.py"/>
-				<F N="py_hless/io/gzipped_read_threaded.py"/>
-				<F N="py_hless/io/lines.py"/>
-				<F N="py_hless/io/mmapio.py"/>
-				<F N="py_hless/io/stringio.py"/>
-			</Folder>
-			<Folder Name="old">
-				<F N="py_hless/old/hless-0.2"/>
-			</Folder>
-			<F N="py_hless/debug.sh"/>
+			<F
+				N="Makefile"
+				Type="Makefile"/>
+			<F N="py_hless/hless"/>
+			<F N="py_hless/old/hless-0.2"/>
 			<F N="py_hless/hless.txt"/>
-			<F N="py_hless/makeman.sh"/>
 		</Folder>
-		<Folder Name="src">
-			<F N="src/asynchronous.cpp"/>
-			<F N="src/asynchronous.h"/>
-			<F N="src/border.cpp"/>
-			<F N="src/border.h"/>
-			<F N="src/brush.cpp"/>
-			<F N="src/brush.h"/>
-			<F N="src/buffer.cpp"/>
-			<F N="src/buffer.h"/>
-			<F N="src/cache.cpp"/>
-			<F N="src/cache.h"/>
-			<F N="src/chunk.cpp"/>
-			<F N="src/chunk.h"/>
-			<F N="src/config.cpp"/>
-			<F N="src/config.h"/>
-			<F N="src/editbox.cpp"/>
-			<F N="src/editbox.h"/>
-			<F N="src/error.cpp"/>
-			<F N="src/error.h"/>
-			<F N="src/file.cpp"/>
-			<F N="src/file.h"/>
-			<F N="src/hless.cpp"/>
-			<F N="src/hless.h"/>
-			<F N="src/input.cpp"/>
-			<F N="src/input.h"/>
-			<F N="src/interruptible.cpp"/>
-			<F N="src/interruptible.h"/>
-			<F N="src/line.cpp"/>
-			<F N="src/line.h"/>
-			<F N="src/log.cpp"/>
-			<F N="src/log.h"/>
-			<F N="src/main.cpp"/>
-			<F N="src/messagebox.cpp"/>
-			<F N="src/messagebox.h"/>
-			<F N="src/meta_line.cpp"/>
-			<F N="src/meta_line.h"/>
-			<F N="src/plain_file.cpp"/>
-			<F N="src/plain_file.h"/>
-			<F N="src/progress.cpp"/>
-			<F N="src/progress.h"/>
-			<F N="src/readable.h"/>
-			<F N="src/screen.cpp"/>
-			<F N="src/screen.h"/>
-			<F N="src/size_aware.h"/>
-			<F N="src/status_bar.cpp"/>
-			<F N="src/status_bar.h"/>
-			<F N="src/types.h"/>
-		</Folder>
-		<F
-			N="Makefile"
-			Type="Makefile"/>
 	</Files>
 </Project>

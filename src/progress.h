@@ -16,6 +16,8 @@
 class Progressing
 {
 public:
+	virtual ~Progressing() { }
+
 	virtual float progress() = 0;
 	virtual void run() = 0;
 };

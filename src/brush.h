@@ -92,6 +92,9 @@ public:
 	static Color* progress_remains_color;
 	static Color* active_button_color;
 
+	typedef std::vector<Color*> MarkColors;
+	static MarkColors marks;
+
 	/**
 	 * Routines below used to draw text on screen using specified color. Difference between two is that 
 	 * first expects coordinates while second only expects line number and assumes line length is as 

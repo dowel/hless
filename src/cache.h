@@ -8,6 +8,8 @@ class Cache : public Readable
 public:
 	Cache(Readable& readable) : _readable(readable) { }
 
+	virtual ~Cache() { }
+
 	virtual u32 read(u32 how_much, u64 offset, char* buffer);
 	virtual u64 get_size();
 

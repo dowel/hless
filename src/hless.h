@@ -1,9 +1,12 @@
 #ifndef __HLESS_H__
 #define __HLESS_H__
 
+#include <set>
+
 #include "screen.h"
 #include "buffer.h"
 #include "input.h"
+#include "mark.h"
 
 class Hless
 {
@@ -38,11 +41,14 @@ public:
 	void on_goto_end(char c);
 	void on_goto(char c);
 	void on_goto_beginning(char c);
+	void on_space(char c);
 
 	void on_debug(char c);
 
 private:
 	Buffer& _buffer;
+
+	Marks _marks;
 
 	Screen _screen;
 	StatusBar _status_bar;

@@ -351,3 +351,12 @@ bool operator!=(const Buffer::iterator& first, const Buffer::iterator& second)
 	return !(first == second);
 }
 
+bool operator<(const Buffer::iterator& first, const Buffer::iterator& second)
+{
+	if (first._chunk->get_start_offset() != second._chunk->get_start_offset()) {
+		return first._chunk->get_start_offset() < second._chunk->get_start_offset();
+	}
+
+	return first._line_index < second._line_index;
+}
+

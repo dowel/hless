@@ -9,7 +9,7 @@ class File : public Readable
 {
 public:
 	File() { };
-	~File() { };
+	virtual ~File() { };
 
 	virtual void open(std::string filename) = 0;
 	virtual void close() = 0;

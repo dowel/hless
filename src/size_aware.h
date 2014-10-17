@@ -9,7 +9,7 @@
 class SizeAware 
 {
 public:
-	SizeAware() { }
+	SizeAware() : _maxx(0) , _maxy(0) , _width(0) , _height(0), _text_height(0) { }
 
 	void update_terminal_size()
 	{
