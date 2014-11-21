@@ -11,7 +11,8 @@ Color* Brush::progress_done_color = 0;
 Color* Brush::progress_remains_color = 0;
 Color* Brush::active_button_color = 0;
 
-Brush::MarkColors Brush::marks(3);
+int Brush::MarkColorsTotal = 3;
+Brush::MarkColors Brush::marks(Brush::MarkColorsTotal);
 
 u32 Color::_last_pair = 1;
 

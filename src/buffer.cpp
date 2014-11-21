@@ -243,6 +243,52 @@ Buffer::iterator Buffer::offset(u64 offset)
 	return iterator(it->second, index, this);
 }
 
+s64 Buffer::iterator::distance_lines(Buffer::iterator& other)
+{
+	iterator* a;
+	iterator* b;
+	int modifier = 1;
+	s64 counter = 0;
+	Chunk* ca;
+	Chunk* cb;
+
+	if (_chunk->get_start_offset() == other._chunk->get_start_offset()) {
+		return _line_index - other._line_index;
+	} else {
+		if (_chunk->get_start_offset() > other._chunk->get_start_offset()) {
+			a = this;
+			b = &other;
+		} else {
+			a = &other;
+			b = this;
+			modifier = -1;
+		}
+	}
+
+	ca = a->_chunk;
+	cb = b->_chunk;
+	counter += ca->get_lines_count() - ca->get_absolute_line_index(a->_line_index);
+
+	ca = _buffer->get_next_chunk();
+	if (!ca || !a->_chunk->adjacent_chunks(ca)) {
+		return -1;
+	}
+
+	while (ca->get_start_offset() < cb->get_start_offset()) {
+		Chunk* temp = _buffer->get_next_chunk(ca);
+		if (!temp || !ca->adjacent_chunks(*temp)) {
+			return -1;
+		}
+		counter += ca->get_lines_count();
+		ca = temp;
+	}
+
+	counter += cb->get_absolute_line_index(b->_line_index);
+	counter *= modifier;
+
+	return counter;
+}
+
 Chunk* Buffer::grow_chunk_down(Chunk* chunk)
 {
 	if (chunk == 0) {

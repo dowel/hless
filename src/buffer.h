@@ -85,6 +85,8 @@ public:
 			return std::string(ss.str());
 		}
 
+		s64 distance_lines(const iterator& other);
+
 		iterator& operator++(int); // suffix form
 		iterator operator++(); // prefix form
 

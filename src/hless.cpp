@@ -14,7 +14,7 @@ static __attribute__((unused)) const char* MODULE_NAME = "hless";
 Hless::Hless(Buffer& buffer)
 	: _buffer(buffer)
 	, _screen(buffer, _marks)
-	, _status_bar()
+	, _status_bar(_marks)
 	, _current(&buffer)
 	, _line_in_current(0)
 	, _cursor(&buffer)

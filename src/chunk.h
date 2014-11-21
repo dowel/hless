@@ -44,6 +44,12 @@ public:
 
 	std::string get_name() { return _name; }
 
+	bool adjacent_chunks(const Chunk* other)
+	{
+		return (get_end() == other->get_start_offset()) || 
+			(other->get_end() == get_start_offset());
+	}
+
 	friend std::ostream& operator<<(std::ostream& os, Chunk& chunk);
 	friend std::ostream& operator<<(std::ostream& os, Chunk* chunk);
 	friend std::ostream& operator<<(std::ostream& os, const Chunk& chunk);
