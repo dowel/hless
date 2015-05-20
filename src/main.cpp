@@ -28,7 +28,7 @@ int main(int argc, char* argv[])
 	Logging::SetMinLevel("main", Logging::LOG_LEVEL1);
 	Logging::SetMinLevel("hless", Logging::LOG_LEVEL1);
 	Logging::SetMinLevel("screen", Logging::LOG_LEVEL1);
-	Logging::SetMinLevel("buffer", Logging::LOG_LEVEL3);
+	Logging::SetMinLevel("buffer", Logging::LOG_LEVEL1);
 	Logging::SetMinLevel("file", Logging::LOG_LEVEL1);
 	Logging::SetMinLevel("cache", Logging::LOG_LEVEL1);
 	Logging::SetMinLevel("plain", Logging::LOG_LEVEL1);
@@ -36,7 +36,7 @@ int main(int argc, char* argv[])
 	Logging::SetMinLevel("brush", Logging::LOG_LEVEL1);
 	Logging::SetMinLevel("line", Logging::LOG_LEVEL_WARN);
 	Logging::SetMinLevel("chunk", Logging::LOG_LEVEL3);
-	Logging::SetMinLevel("status", Logging::LOG_LEVEL1);
+	Logging::SetMinLevel("status", Logging::LOG_LEVEL3);
 	Logging::SetMinLevel("editbox", Logging::LOG_LEVEL2);
 	Logging::SetMinLevel("intr", Logging::LOG_LEVEL1);
 	Logging::SetMinLevel("progress", Logging::LOG_LEVEL1);
