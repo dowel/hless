@@ -92,7 +92,7 @@ public:
 	static Color* progress_remains_color;
 	static Color* active_button_color;
 
-	static int MarkColorsTotal;
+	static const int MarkColorsTotal;
 	typedef std::vector<Color*> MarkColors;
 	static MarkColors marks;
 
