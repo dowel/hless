@@ -243,15 +243,17 @@ Buffer::iterator Buffer::offset(u64 offset)
 	return iterator(it->second, index, this);
 }
 
-s64 Buffer::iterator::distance_lines(Buffer::iterator& other)
+s64 Buffer::iterator::distance_lines(const Buffer::iterator& other)
 {
-	iterator* a;
-	iterator* b;
+	const iterator* a;
+	const iterator* b;
 	int modifier = 1;
 	s64 counter = 0;
 	Chunk* ca;
 	Chunk* cb;
 
+	// The distance can be from this to other or from other to this. Eventually we need
+	// A at the beginning and B at the end.
 	if (_chunk->get_start_offset() == other._chunk->get_start_offset()) {
 		return _line_index - other._line_index;
 	} else {
@@ -269,14 +271,14 @@ s64 Buffer::iterator::distance_lines(Buffer::iterator& other)
 	cb = b->_chunk;
 	counter += ca->get_lines_count() - ca->get_absolute_line_index(a->_line_index);
 
-	ca = _buffer->get_next_chunk();
+	ca = _buffer->get_next_chunk(ca);
 	if (!ca || !a->_chunk->adjacent_chunks(ca)) {
 		return -1;
 	}
 
 	while (ca->get_start_offset() < cb->get_start_offset()) {
 		Chunk* temp = _buffer->get_next_chunk(ca);
-		if (!temp || !ca->adjacent_chunks(*temp)) {
+		if (!temp || !ca->adjacent_chunks(temp)) {
 			return -1;
 		}
 		counter += ca->get_lines_count();

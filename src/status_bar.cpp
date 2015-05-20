@@ -1,4 +1,5 @@
 #include <iostream>
+#include <iomanip>
 
 #include "status_bar.h"
 
@@ -42,39 +43,59 @@ void StatusBar::redraw(Buffer::iterator& cursor)
 
 void StatusBar::draw_marks(Buffer::iterator& cursor)
 {
-	Mark* before_cursor[Brush::MarkColorsTotal] = { 0, };
-	Mark* after_cursor[Brush::MarkColorsTotal] = { 0, };
+	Log1("Redrawing status bar");
+
+	Mark* before_cursor[Brush::MarkColorsTotal];
+	Mark* after_cursor[Brush::MarkColorsTotal];
+
+	// Initialize before_cursor and after_cursor to 0s.
+	for (int i = 0; i < Brush::MarkColorsTotal; i++) {
+		before_cursor[i] = 0;
+		after_cursor[i] = 0;
+	}
+
+	Mark c(cursor);
 	for (Mark m : _marks) {
-		Mark c(cursor);
+		Log1("Looking at mark " << m);
+		Log3("Comparing with cursor " << c);
 		if (m < c) {
-			before_cursor[m.get_color_index()] = m;
+			Log2("Mark " << m << " is less then cursor. Setting for color " << m.get_color_index());
+			before_cursor[m.get_color_index()] = &m;
 		} else if (m == c) {
+			Log2("Mark " << m << " is equal to cursor.");
 			before_cursor[m.get_color_index()] = 0;
 			after_cursor[m.get_color_index()] = 0;
 		} else {
-			after_cursor[m.get_color_index()] = m;
+			Log2("Mark " << m << " is greater then cursor. Setting for color " << m.get_color_index());
+			after_cursor[m.get_color_index()] = &m;
 		}
 	}
 
-	for (int i = 0; i < Brush::MarkColorsTotal; i++) {
+	for (int i = 0, x = 2; i < Brush::MarkColorsTotal; i++) {
 		std::stringstream ss;
 		if (before_cursor[i] != 0) {
-			s64 n = before_cursor[i]->get_iterator().distance_lines(cursor);
-			ss << n;
+			s64 n = cursor.distance_lines(before_cursor[i]->get_iterator());
+			Log3("Drawing " << n << " lines before cursor");
+			ss << std::setfill(' ') << std::setw(4) << n;
 		} else {
-			ss << "---";
+			ss << "----";
 		}
 
 		ss << "|";
 
 		if (after_cursor[i] != 0) {
-			s64 n = cursor.distance_lines(*after_cursor[i]);
-			ss << n;
+			s64 n = after_cursor[i]->get_iterator().distance_lines(cursor);
+			Log3("Drawing " << n << " lines after cursor");
+			ss << std::setfill(' ') << std::setw(4) << std::left << n;
 		} else {
-			ss << "---";
+			ss << "----";
 		}
+
+		Log3("Marks line: " << ss.str());
+
 		Line l(ss.str());
-		_brush.draw_text(2, _text_height + 1, l, _brush.marks[i]);
+		_brush.draw_text(x, _text_height + 1, l, _brush.marks[i]);
+		x += l.length() + 1;
 	}
 }
 
