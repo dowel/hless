@@ -42,6 +42,8 @@ void Hless::run()
 	_input.register_input_sequence({':'}, KEY_HANDLER(Hless::on_goto));
 	_input.register_input_sequence({'g'}, KEY_HANDLER(Hless::on_goto_beginning));
 	_input.register_input_sequence({' '}, KEY_HANDLER(Hless::on_space));
+	_input.register_input_sequence({'.'}, KEY_HANDLER(Hless::on_dot));
+	_input.register_input_sequence({'>'}, KEY_HANDLER(Hless::on_bigger_than));
 
 	_input.register_input_sequence({'D'}, KEY_HANDLER(Hless::on_debug));
 
@@ -302,8 +304,42 @@ void Hless::on_space(char c)
 		if (mark->get_color_index() == Brush::marks.size() - 1) {
 			_marks.erase(Mark(_cursor));
 		} else {
-			mark->next_color();
 		}
+			mark->next_color();
+	}
+}
+
+void Hless::on_dot(char c)
+{
+	std::shared_ptr<Mark> next;
+	Mark cursor(_cursor); // cursor is a mark, _cursor is an iterator...
+	for (Mark m: _marks) {
+		if (cursor < m) {
+			next.reset(new Mark(m));
+			break;
+		}
+	}
+
+	if (next != 0) {
+		_cursor = next->get_iterator();
+		_screen.stage_redraw_from_middle(_cursor, _current, _line_in_current);
+	}
+}
+
+void Hless::on_bigger_than(char c)
+{
+	std::shared_ptr<Mark> next;
+	Mark cursor(_cursor); // cursor is a mark, _cursor is an iterator...
+	for (auto it = _marks.rbegin(); it != _marks.rend(); it++) {
+		if (*it < cursor) {
+			next.reset(new Mark(*it));
+			break;
+		}
+	}
+
+	if (next != 0) {
+		_cursor = next->get_iterator();
+		_screen.stage_redraw_from_middle(_cursor, _current, _line_in_current);
 	}
 }
 
