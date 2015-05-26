@@ -41,9 +41,9 @@ void Hless::run()
 	_input.register_input_sequence({'G'}, KEY_HANDLER(Hless::on_goto_end));
 	_input.register_input_sequence({':'}, KEY_HANDLER(Hless::on_goto));
 	_input.register_input_sequence({'g'}, KEY_HANDLER(Hless::on_goto_beginning));
-	_input.register_input_sequence({' '}, KEY_HANDLER(Hless::on_space));
-	_input.register_input_sequence({'.'}, KEY_HANDLER(Hless::on_dot));
-	_input.register_input_sequence({'>'}, KEY_HANDLER(Hless::on_bigger_than));
+	_input.register_input_sequence({' '}, KEY_HANDLER(Hless::on_mark));
+	_input.register_input_sequence({'.'}, KEY_HANDLER(Hless::on_next_mark));
+	_input.register_input_sequence({'>'}, KEY_HANDLER(Hless::on_prev_mark));
 
 	_input.register_input_sequence({'D'}, KEY_HANDLER(Hless::on_debug));
 
@@ -295,7 +295,7 @@ void Hless::on_goto_beginning(char c)
 	_line_in_current = 0;
 }
 
-void Hless::on_space(char c)
+void Hless::on_mark(char c)
 {
 	Marks::iterator mark = _marks.find(Mark(_cursor));
 	if (mark == _marks.end()) {
@@ -309,7 +309,7 @@ void Hless::on_space(char c)
 	}
 }
 
-void Hless::on_dot(char c)
+void Hless::on_next_mark(char c)
 {
 	std::shared_ptr<Mark> next;
 	Mark cursor(_cursor); // cursor is a mark, _cursor is an iterator...
@@ -326,7 +326,7 @@ void Hless::on_dot(char c)
 	}
 }
 
-void Hless::on_bigger_than(char c)
+void Hless::on_prev_mark(char c)
 {
 	std::shared_ptr<Mark> next;
 	Mark cursor(_cursor); // cursor is a mark, _cursor is an iterator...

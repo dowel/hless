@@ -41,9 +41,9 @@ public:
 	void on_goto_end(char c);
 	void on_goto(char c);
 	void on_goto_beginning(char c);
-	void on_space(char c);
-	void on_dot(char c);
-	void on_bigger_than(char c);
+	void on_mark(char c);
+	void on_next_mark(char c);
+	void on_prev_mark(char c);
 
 	void on_debug(char c);
 
