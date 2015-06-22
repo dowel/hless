@@ -65,7 +65,7 @@ void Line::strip_back()
 	if (_length == 0) {
 		return;
 	}
-	while (!isprint(_string[_length])) {
+	while (!isprint(_string[_length]) && _length != 0) {
 		_length--;
 	}
 	_string[_length] = 0;
@@ -86,7 +86,14 @@ void Line::split_lines(u32 length, LineList& lst)
 	u32 cnt = 0;
 	char buffer[length + 1];
 	char* temp;
-	Log2("Splitting " << _length << " byte line to " << length << " bytes long chunks.");
+	Log2("Splitting " << _length << " byte line to " << length << " bytes long pieces.");
+
+	if (_length == 0) {
+		memset(buffer, ' ', length);
+		lst.push_back(boost::shared_ptr<Line>(new Line(buffer, length)));
+		return;
+	}
+
 	while (cnt < _length) {
 		Log2("Processed " << cnt << " so far");
 		if (_length - cnt < length) { // string's tail...

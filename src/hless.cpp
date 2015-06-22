@@ -44,6 +44,7 @@ void Hless::run()
 	_input.register_input_sequence({' '}, KEY_HANDLER(Hless::on_mark));
 	_input.register_input_sequence({'.'}, KEY_HANDLER(Hless::on_next_mark));
 	_input.register_input_sequence({'>'}, KEY_HANDLER(Hless::on_prev_mark));
+	_input.register_input_sequence({'/'}, KEY_HANDLER(Hless::on_search));
 
 	_input.register_input_sequence({'D'}, KEY_HANDLER(Hless::on_debug));
 
@@ -341,5 +342,13 @@ void Hless::on_prev_mark(char c)
 		_cursor = next->get_iterator();
 		_screen.stage_redraw_from_middle(_cursor, _current, _line_in_current);
 	}
+}
+
+void Hless::on_search(char c)
+{
+	Editbox::ModesList modes = {"plain", "regex"};
+	Editbox ed("Search ", modes);
+
+	std::string pattern = ed.run();
 }
 

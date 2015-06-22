@@ -44,6 +44,7 @@ public:
 	void on_mark(char c);
 	void on_next_mark(char c);
 	void on_prev_mark(char c);
+	void on_search(char c);
 
 	void on_debug(char c);
 

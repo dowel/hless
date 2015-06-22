@@ -77,10 +77,12 @@ std::string Editbox::run()
 		std::stringstream ss;
 		ss << _prompt;
 
-		std::string substr = _text.substr(_window, std::min(_text_width, u32(_text.length() - _window)));
+ 		std::string substr = _text.substr(_window, std::min(_text_width, u32(_text.length() - _window)));
 		ss << substr;
 
 		Line line(ss.str());
+
+		Log2("Before appending spaces, line is: " << line);
 
 		if (line.length() < _width) {
 			Line rest(' ', _width - line.length());
