@@ -77,8 +77,13 @@ std::string Editbox::run()
 		std::stringstream ss;
 		ss << _prompt;
 
+		Log2("Prompt: " << _prompt << ", window: " << _window << ", text_width: " << _text_width << 
+			 ", text length: " << _text.length());
+
  		std::string substr = _text.substr(_window, std::min(_text_width, u32(_text.length() - _window)));
 		ss << substr;
+
+		Log2("Substring of text: " << substr);
 
 		Line line(ss.str());
 
@@ -109,7 +114,10 @@ std::string Editbox::run()
 
 void Editbox::on_printable_input(char c)
 {
-	_text.insert(_cursor, &c);
+	char s[2];
+	s[0] = c;
+	s[1] = 0;
+	_text.insert(_cursor, s);
 	_cursor++;
 	if (_cursor >= _text_width) {
 		_window++;

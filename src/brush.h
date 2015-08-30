@@ -4,6 +4,7 @@
 #include <string>
 #include <ncurses.h>
 #include <iostream>
+#include <vector>
 
 #include "types.h"
 #include "line.h"
