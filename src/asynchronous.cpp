@@ -2,7 +2,7 @@
 #include "error.h"
 
 Asynchronous::Asynchronous()
-	: _thread(-1)
+	: _thread(0)
 	, _alive(false)
 {
 
