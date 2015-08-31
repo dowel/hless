@@ -36,6 +36,7 @@ void Editbox::init()
 
 	_input.register_input_sequence({'\n'}, KEY_HANDLER(Editbox::on_enter));
 	_input.register_input_sequence({KEY_BACKSPACE}, KEY_HANDLER(Editbox::on_backspace));
+	_input.register_input_sequence({127}, KEY_HANDLER(Editbox::on_backspace));
 	_input.register_input_sequence({KEY_DC}, KEY_HANDLER(Editbox::on_delete));
 	_input.register_input_sequence({KEY_LEFT}, KEY_HANDLER(Editbox::on_left));
 	_input.register_input_sequence({KEY_RIGHT}, KEY_HANDLER(Editbox::on_right));

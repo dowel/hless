@@ -46,6 +46,7 @@ void InputProcessor::wait_for_input()
 		ch = getch();
 		Log2("Received input character " << ch);
 		if (ch == ERR) { // this indicates a signal..
+			Log2("Received ERR character");
 			break;
 		}
 		seq.push_back(ch);
